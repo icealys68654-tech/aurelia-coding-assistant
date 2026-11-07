@@ -5,7 +5,7 @@ import {
   createLovableAiGatewayRunIdFetch,
   getLovableAiGatewayRunId,
   withLovableAiGatewayRunIdHeader,
-} from "../../ai-apps-gateway-sdk/examples/run-id.ts";
+} from "./run-id.ts";
 
 export function createResponsesCall(
   request: Request,
@@ -27,6 +27,7 @@ export function createResponsesCall(
     ...(instructions ? { instructions } : {}),
     messages,
     abortSignal: request.signal,
+    maxRetries: 0,
     providerOptions: {
       openai: {
         store: false,
@@ -43,6 +44,7 @@ export function createResponsesCall(
   });
   return {
     result,
+    runIdFetch,
     response: () =>
       withLovableAiGatewayRunIdHeader(result.toUIMessageStreamResponse({ sendReasoning: true }), runIdFetch),
   };
