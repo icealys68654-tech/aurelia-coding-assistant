@@ -72,8 +72,8 @@ export const Reasoning = memo(
 
     const [isOpen, setIsOpen] = useControllableState<boolean>({
       defaultProp: resolvedDefaultOpen,
-      onChange: onOpenChange,
-      prop: open,
+      ...(onOpenChange ? { onChange: onOpenChange } : {}),
+      ...(open !== undefined ? { prop: open } : {}),
     });
     const [duration, setDuration] = useControllableState<number | undefined>({
       defaultProp: undefined,
@@ -119,6 +119,7 @@ export const Reasoning = memo(
 
         return () => clearTimeout(timer);
       }
+      return undefined;
     }, [isStreaming, isOpen, setIsOpen, hasAutoClosed]);
 
     const handleOpenChange = useCallback(

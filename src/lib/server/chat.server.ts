@@ -24,7 +24,7 @@ export async function handleChat(request: Request) {
     if (error || !conversation) return Response.json({ error: 'Project not found.' }, { status: 404 });
     const { data: block } = await client.from('ai_access_blocks').select('*').eq('user_id', user.id).maybeSingle();
     if (block) return Response.json({ error: block.reason }, { status: block.status });
-    const saved = conversation.messages as UIMessage[];
+    const saved = conversation.messages as unknown as UIMessage[];
     const messages = [...saved, lastUser];
     const title = saved.length ? conversation.title : lastUser.parts.filter(p => p.type === 'text').map(p => p.text).join(' ').slice(0, 65);
     const write = await client.from('conversations').update({ messages: messages as unknown as Json, title, updated_at: new Date().toISOString() }).eq('id', conversation.id);
