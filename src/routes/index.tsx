@@ -29,11 +29,11 @@ function Index() {
     const img = ctx.createImageData(N, N);
     const d = img.data;
     const PI = Math.PI;
-    const table: number[][] = [];
+    const table: [number, number, number][] = [];
     for (let i = 0; i < 360; i++) {
       const h = i / 60, k = Math.floor(h) % 6, f = h - Math.floor(h), q = 1 - f;
-      const c = [[1, f, 0], [q, 1, 0], [0, 1, f], [0, q, 1], [f, 0, 1], [1, 0, q]][k];
-      table.push(c.map((v) => Math.round(v * 255)));
+      const c = [[1, f, 0], [q, 1, 0], [0, 1, f], [0, q, 1], [f, 0, 1], [1, 0, q]][k]!;
+      table.push([Math.round(c[0]! * 255), Math.round(c[1]! * 255), Math.round(c[2]! * 255)]);
     }
     let yaw = 0, pitch = 0.4, drag = false, lx = 0, ly = 0, raf = 0;
     const down = (e: PointerEvent) => { drag = true; lx = e.clientX; ly = e.clientY; cv.setPointerCapture(e.pointerId); cv.style.cursor = "grabbing"; };
@@ -47,7 +47,7 @@ function Index() {
     cv.addEventListener("pointerdown", down);
     cv.addEventListener("pointerup", up);
     cv.addEventListener("pointermove", move);
-    const L = [-0.45, 0.55, 0.7];
+    const L: [number, number, number] = [-0.45, 0.55, 0.7];
     const ll = Math.hypot(...L);
     L[0] /= ll; L[1] /= ll; L[2] /= ll;
 
@@ -60,7 +60,7 @@ function Index() {
         const lon = Math.atan2(x2, z2), lat = Math.asin(y1);
         let idx = Math.floor(((lon + PI) / (2 * PI)) * 360 + (lat / PI) * 120) % 360;
         if (idx < 0) idx += 360;
-        const col = table[idx], dif = Math.max(0, x * L[0] + y * L[1] + z * L[2]), sh = 0.38 + 0.62 * dif, spec = Math.pow(dif, 40) * 0.7;
+        const col = table[idx]!, dif = Math.max(0, x * L[0] + y * L[1] + z * L[2]), sh = 0.38 + 0.62 * dif, spec = Math.pow(dif, 40) * 0.7;
         let rr = col[0] * sh, gg = col[1] * sh, bb = col[2] * sh;
         rr += (255 - rr) * spec; gg += (255 - gg) * spec; bb += (255 - bb) * spec;
         rr = Math.round(rr); gg = Math.round(gg); bb = Math.round(bb);
