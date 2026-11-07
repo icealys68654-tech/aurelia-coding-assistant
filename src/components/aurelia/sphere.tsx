@@ -60,12 +60,6 @@ export function Sphere({ xor = false, spin = 10 }: { xor?: boolean; spin?: numbe
     cv.addEventListener("pointerdown", down);
     cv.addEventListener("pointerup", up);
     cv.addEventListener("pointermove", move);
-    const L: [number, number, number] = [-0.45, 0.55, 0.7];
-    const ll = Math.hypot(...L);
-    L[0] /= ll;
-    L[1] /= ll;
-    L[2] /= ll;
-
     const draw = () => {
       const cy = Math.cos(yaw),
         sy = Math.sin(yaw),
@@ -91,19 +85,11 @@ export function Sphere({ xor = false, spin = 10 }: { xor?: boolean; spin?: numbe
             lat = Math.asin(y1);
           let idx = Math.floor(((lon + PI) / (2 * PI)) * 360 + (lat / PI) * 120) % 360;
           if (idx < 0) idx += 360;
-          const col = table[idx] ?? [0, 0, 0],
-            dif = Math.max(0, x * L[0] + y * L[1] + z * L[2]),
-            sh = 0.38 + 0.62 * dif,
-            spec = Math.pow(dif, 40) * 0.7;
-          let rr = col[0] * sh,
-            gg = col[1] * sh,
-            bb = col[2] * sh;
-          rr += (255 - rr) * spec;
-          gg += (255 - gg) * spec;
-          bb += (255 - bb) * spec;
-          rr = Math.round(rr);
-          gg = Math.round(gg);
-          bb = Math.round(bb);
+          const col = table[idx] ?? [0, 0, 0];
+          // Use the original rainbow lookup colors directly, without lighting.
+          let rr = col[0],
+            gg = col[1],
+            bb = col[2];
           if (inv) {
             rr ^= 255;
             gg ^= 255;
