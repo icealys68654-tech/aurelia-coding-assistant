@@ -219,10 +219,13 @@ export function Workspace({
     if (!id) return;
     const pending = sessionStorage.getItem(`aurelia-prompt-${id}`);
     if (!pending) return;
-    sessionStorage.removeItem(`aurelia-prompt-${id}`);
     const parsed = JSON.parse(pending) as { text: string; mode: "preview" | "explain" };
     setMode(parsed.mode);
-    void sendMessage({ text: parsed.text }, { body: { conversationId: id, mode: parsed.mode } });
+    const timer = setTimeout(() => {
+      sessionStorage.removeItem(`aurelia-prompt-${id}`);
+      void sendMessage({ text: parsed.text }, { body: { conversationId: id, mode: parsed.mode } });
+    }, 0);
+    return () => clearTimeout(timer);
   }, [id, sendMessage]);
   async function copy(content: string) {
     try {
