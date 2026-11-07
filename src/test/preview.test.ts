@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { buildPreview, extractCode } from "@/lib/preview";
 describe("Browser code execution", () => {
+  it('accepts a complete raw HTML document', () => {
+    expect(extractCode('<!doctype html><html><body><button>Add</button></body></html>')[0]?.language).toBe('html');
+  });
   it("extracts completed HTML, CSS and JavaScript fences", () => {
     expect(
       extractCode(

@@ -1,9 +1,12 @@
 export type CodeFile = { language: string; code: string };
 export function extractCode(text: string): CodeFile[] {
-  return Array.from(text.matchAll(/```([\w+-]*)[^\n]*\n([\s\S]*?)```/g), (m) => ({
+  const fenced = Array.from(text.matchAll(/```([\w+-]*)[^\n]*\n([\s\S]*?)```/g), (m) => ({
     language: (m[1] || "text").toLowerCase(),
     code: (m[2] || "").trim(),
   }));
+  if (fenced.length) return fenced;
+  const document = text.match(/(?:<!doctype html>\s*)?<html\b[^>]*>[\s\S]*<\/html>/i)?.[0];
+  return document ? [{ language: 'html', code: document }] : [];
 }
 export function buildPreview(files: CodeFile[]): string | null {
   const html = files.filter((f) => ["html", "htm"].includes(f.language)).at(-1)?.code;
