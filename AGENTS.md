@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## AURELIA architecture
+- Use route-keyed, authenticated Cloud conversation records containing complete AI SDK UIMessage arrays; this keeps coding projects private and histories isolated.
+- Stream AI through the authenticated TanStack HTTP chat boundary and server-only Gateway helpers; this protects secrets while preserving live generation and cancellation.
+- Compose chat with AI Elements and execute only completed HTML output in a scripts-only sandbox with network-blocking CSP; generated code must never access the host application.
+- Keep the rainbow sphere as an interactive canvas identity and the four-layer pipeline as conceptual organization; it is not an LLM implementation.

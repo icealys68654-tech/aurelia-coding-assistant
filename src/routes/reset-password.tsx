@@ -1,0 +1,50 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+export const Route = createFileRoute("/reset-password")({
+  head: () => ({
+    meta: [
+      { title: "Reset password — AURELIA" },
+      { name: "description", content: "Set a new password for your AURELIA account." },
+      { property: "og:title", content: "Reset password — AURELIA" },
+      { property: "og:description", content: "Securely update your AURELIA password." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: Reset,
+});
+function Reset() {
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  return (
+    <main className="flex min-h-screen items-center justify-center px-4">
+      <form
+        className="grid w-full max-w-sm gap-4"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const { error } = await supabase.auth.updateUser({ password });
+          setMessage(error?.message || "Password updated. You can return to your workspace.");
+        }}
+      >
+        <h1 className="text-2xl">Reset your password</h1>
+        <Input
+          type="password"
+          aria-label="New password"
+          required
+          minLength={8}
+          placeholder="New password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <Button>Update password</Button>
+        {message && <p role="status">{message}</p>}
+        <Button asChild variant="link">
+          <Link to="/">Back to AURELIA</Link>
+        </Button>
+      </form>
+    </main>
+  );
+}
