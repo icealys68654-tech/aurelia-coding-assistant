@@ -1,5 +1,13 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794092924552,
+      "tag": "0000_aurelia_project_conversations",
+      "breakpoints": true
+    }
+  ]
 }

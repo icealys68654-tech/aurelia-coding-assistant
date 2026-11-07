@@ -1,0 +1,14 @@
+CREATE TABLE public.conversations (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL, title text NOT NULL DEFAULT 'Untitled project', messages jsonb NOT NULL DEFAULT '[]'::jsonb, updated_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.conversations TO authenticated;
+GRANT ALL ON public.conversations TO service_role;
+ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users read own conversations" ON public.conversations FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
+CREATE POLICY "Users create own conversations" ON public.conversations FOR INSERT TO authenticated WITH CHECK (user_id = (SELECT auth.uid()));
+CREATE POLICY "Users update own conversations" ON public.conversations FOR UPDATE TO authenticated USING (user_id = (SELECT auth.uid())) WITH CHECK (user_id = (SELECT auth.uid()));
+CREATE POLICY "Users delete own conversations" ON public.conversations FOR DELETE TO authenticated USING (user_id = (SELECT auth.uid()));
+CREATE INDEX conversations_user_updated ON public.conversations (user_id, updated_at DESC);
+CREATE TABLE public.ai_access_blocks (user_id uuid PRIMARY KEY, reason text NOT NULL, status integer NOT NULL, updated_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT ON public.ai_access_blocks TO authenticated;
+GRANT ALL ON public.ai_access_blocks TO service_role;
+ALTER TABLE public.ai_access_blocks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users read own AI access state" ON public.ai_access_blocks FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
