@@ -34,16 +34,25 @@ export function MediaControls({ frame, revision, ready }: { frame: RefObject<HTM
     frame.current.contentWindow.postMessage({ channel: "aurelia-export", id, action, duration }, "*");
   }
   return (
-    <div className="flex flex-wrap items-center gap-1 border-t border-border px-3 py-2">
-      {([{ action: "image", label: "Prepare PNG", icon: Image }, { action: "audio", label: "Prepare WAV", icon: Music }, { action: "video", label: "Record video", icon: Video }]).map(({ action, label, icon: Icon }) => (
-        <Button key={action} variant="ghost" size="icon-sm" title={label} aria-label={label} disabled={!ready || Boolean(working)} onClick={() => prepare(action)}><Icon /></Button>
-      ))}
-      <label className="ml-1 flex items-center gap-1 text-xs text-muted-foreground">
+    <div className="flex flex-col gap-3 border-t border-border px-3 py-3" role="group" aria-label="Artwork, audio and video exports">
+      <span className="text-xs font-medium text-foreground">Export files</span>
+      <div className="grid grid-cols-3 gap-2">
+        {([{ action: "image", label: "Prepare PNG", text: "Artwork", format: "PNG", icon: Image }, { action: "audio", label: "Prepare WAV", text: "Audio", format: "WAV", icon: Music }, { action: "video", label: "Record video", text: "Video", format: "Record", icon: Video }]).map(({ action, label, text, format, icon: Icon }) => (
+          <Button key={action} variant="outline" className="h-16 min-w-0 flex-col gap-1 px-1" title={label} aria-label={label} disabled={!ready || Boolean(working)} onClick={() => prepare(action)}>
+            <span className="flex items-center gap-1 text-xs"><Icon className="size-3.5" />{text}</span>
+            <span className="text-[10px] text-muted-foreground">{working === action ? (action === "video" ? "Recording…" : "Preparing…") : format}</span>
+          </Button>
+        ))}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+      <label className="flex items-center gap-2 text-xs text-muted-foreground">
+        Duration
         <input aria-label="Export duration in seconds" className="w-12 rounded border border-border bg-background px-1 py-1 text-foreground" type="number" min={1} max={30} value={duration} disabled={Boolean(working)} onChange={(e) => setDuration(Math.max(1, Math.min(30, Number(e.target.value) || 1)))} />s
       </label>
       {working && <span role="status" className="text-xs text-muted-foreground">{working === "video" ? "Recording…" : "Preparing…"}</span>}
       {working === "video" && <Button size="icon-sm" variant="ghost" title="Stop recording" aria-label="Stop recording" onClick={() => frame.current?.contentWindow?.postMessage({ channel: "aurelia-export", action: "stop" }, "*")}><Square /></Button>}
-      {result && <Button variant="secondary" size="sm" className="ml-auto" aria-label={`Download ${result.filename.endsWith("png") ? "PNG" : result.filename.endsWith("wav") ? "WAV" : "video"}`} onClick={() => void deliverFile(result.blob, result.filename)}><Download />{result.filename.endsWith("png") ? "PNG" : result.filename.endsWith("wav") ? "WAV" : "Video"}</Button>}
+      </div>
+      {result && <Button className="w-full" aria-label={`Download ${result.filename.endsWith("png") ? "PNG" : result.filename.endsWith("wav") ? "WAV" : "video"}`} onClick={() => void deliverFile(result.blob, result.filename)}><Download />Download {result.filename.endsWith("png") ? "artwork · PNG" : result.filename.endsWith("wav") ? "audio · WAV" : "video"}</Button>}
     </div>
   );
 }
