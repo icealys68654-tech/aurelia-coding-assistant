@@ -36,3 +36,4 @@ use the editor.
 - Keep the rainbow sphere as an interactive canvas identity and the four-layer pipeline as conceptual organization; it is not an LLM implementation.
 - Export canvas PNG/video and offline synthesized WAV through request-scoped iframe messages; validate source, MIME and size and require a separate download click to preserve mobile user activation.
 - Persist creation controls per project in session storage and automatically mount only finished HTML answers; clear stale previews during generation so exports match the current answer.
+- Use named grid areas for chat, canvas output and engine across screen sizes; keep a single preview iframe mounted when changing workspace views to preserve execution and export state.

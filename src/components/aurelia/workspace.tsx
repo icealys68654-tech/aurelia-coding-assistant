@@ -118,6 +118,7 @@ export function Workspace({
   const [authOpen, setAuthOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mode, setMode] = useState<"explain" | "preview">("explain");
+  const [view, setView] = useState<"workspace" | "live">("workspace");
   const [target, setTarget] = useState<CreationTarget>("code");
   const previewFrame = useRef<HTMLIFrameElement>(null);
   const [previewReady, setPreviewReady] = useState(false);
@@ -209,6 +210,10 @@ export function Workspace({
   function selectCreation(nextMode: "explain" | "preview", nextTarget: CreationTarget) {
     setMode(nextMode); setTarget(nextTarget);
     if (id) sessionStorage.setItem(`aurelia-selection-${id}`, JSON.stringify({ mode: nextMode, target: nextTarget }));
+  }
+  function openLivePreview() {
+    setView("live");
+    setOutputTab("preview");
   }
   const activeTitle = projects.find((p) => p.id === id)?.title || title;
   async function newProject() {
@@ -387,7 +392,11 @@ export function Workspace({
               {busy ? "Generating" : "Ready"}
             </span>
           </header>
-          <div className="workspace-body">
+          <nav className="workspace-view-tabs" aria-label="Workspace view">
+            <Button variant={view === "workspace" ? "secondary" : "ghost"} size="sm" aria-pressed={view === "workspace"} onClick={() => setView("workspace")}><Code2 />Workspace</Button>
+            <Button variant={view === "live" ? "secondary" : "ghost"} size="sm" aria-pressed={view === "live"} onClick={openLivePreview}><Monitor />Live preview</Button>
+          </nav>
+          <div className={`workspace-body ${view === "live" ? "live-canvas-view" : ""}`}>
             <section className="chat-section">
               <Conversation className="chat-conversation">
                 <ConversationContent className="chat-content">
@@ -617,7 +626,8 @@ export function Workspace({
                   </div>
                 ))}
               </div>
-              <div className="output-section">
+            </aside>
+              <section className="output-section" aria-label="Canvas output">
                 <div className="output-toolbar">
                   <div className="flex gap-1">
                     <Button
@@ -630,7 +640,7 @@ export function Workspace({
                     <Button
                       variant={outputTab === "preview" ? "secondary" : "ghost"}
                       size="sm"
-                      onClick={() => setOutputTab("preview")}
+                      onClick={openLivePreview}
                     >
                       Preview
                     </Button>
@@ -695,7 +705,7 @@ export function Workspace({
                     className={`preview-frame ${outputTab === "code" ? "hidden" : ""}`}
                   />
                 )}
-                <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={!busy && previewReady && Boolean(previewDoc)} showPreview={() => setOutputTab("preview")} />
+                <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={!busy && previewReady && Boolean(previewDoc)} showPreview={openLivePreview} />
                 <div className="output-footer">
                   <span>
                     {files.length
@@ -710,15 +720,14 @@ export function Workspace({
                       setPreviewReady(false);
                       setPreviewKey((key) => key + 1);
                       setPreviewDoc(exportDoc);
-                      setOutputTab("preview");
+                      openLivePreview();
                     }}
                   >
                     {previewDoc ? <RotateCcw /> : <Play />}
                     {previewDoc ? "Rerun" : "Run preview"}
                   </Button>
                 </div>
-              </div>
-            </aside>
+              </section>
           </div>
           <footer className="workspace-footer">
             <span>
