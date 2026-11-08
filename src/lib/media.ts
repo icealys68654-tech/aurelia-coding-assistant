@@ -1,4 +1,12 @@
 export type CreationTarget = "code" | "2d" | "3d" | "audio" | "video";
+export type CreationSelection = { mode: "explain" | "preview"; target: CreationTarget };
+export function readCreationSelection(value: unknown): CreationSelection {
+  const selection = value as Partial<CreationSelection> | null;
+  return {
+    mode: selection?.mode === "preview" ? "preview" : "explain",
+    target: ["code", "2d", "3d", "audio", "video"].includes(selection?.target ?? "") ? selection?.target as CreationTarget : "code",
+  };
+}
 export const mediaInstructions = `For canvas artwork, audio, or video requests in EITHER mode, return one complete self-contained html fenced document with inline CSS and JavaScript, then explain it. No imports, network resources or external dependencies. Draw 2D artwork with Canvas2D, and 3D artwork using native WebGL or projected 3D geometry on a canvas. Use preserveDrawingBuffer:true with WebGL. Animate the canvas for video capture. For audio implement window.aurelia = { renderAudio: async (duration) => AudioBuffer } using OfflineAudioContext to synthesize the requested sound, honoring duration in seconds. No microphone or camera. Include audio playback controls. The workspace exports the first canvas as PNG or silent browser-supported video and renderAudio output as WAV. Do not claim files exist before export.`;
 export function creationRequest(text: string, target: CreationTarget): string {
   if (target === "code") return text;

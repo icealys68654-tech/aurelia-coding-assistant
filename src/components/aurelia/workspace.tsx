@@ -59,7 +59,7 @@ import { buildPreview, extractCode } from "@/lib/preview";
 import { Sphere } from "./sphere";
 import { Auth } from "./auth";
 import { toast } from "sonner";
-import { creationRequest, downloadBlob, type CreationTarget } from "@/lib/media";
+import { creationRequest, downloadBlob, readCreationSelection, type CreationTarget } from "@/lib/media";
 import { MediaControls } from "./media-controls";
 
 export const conversationOptions = (id: string) =>
@@ -122,6 +122,7 @@ export function Workspace({
   const previewFrame = useRef<HTMLIFrameElement>(null);
   const [previewReady, setPreviewReady] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
+  const loadedAnswer = useRef<string | null>(null);
   const [xor, setXor] = useState(false);
   const [spin, setSpin] = useState(10);
   const [input, setInput] = useState("");
@@ -180,6 +181,35 @@ export function Workspace({
   const files = extractCode(text);
   const doc = buildPreview(files);
   const exportDoc = buildPreview(files, true);
+  useEffect(() => {
+    if (busy) {
+      setPreviewReady(false);
+      setPreviewDoc(null);
+      return;
+    }
+    if (!answer || error || !exportDoc) return;
+    const revision = `${answer.id}:${text}`;
+    if (loadedAnswer.current === revision) return;
+    loadedAnswer.current = revision;
+    setPreviewReady(false);
+    setPreviewKey((key) => key + 1);
+    setPreviewDoc(exportDoc);
+    setOutputTab("preview");
+  }, [busy, answer?.id, text, exportDoc, error]);
+  useEffect(() => {
+    if (!id) return;
+    try {
+      const stored = sessionStorage.getItem(`aurelia-selection-${id}`);
+      if (!stored) return;
+      const selection = readCreationSelection(JSON.parse(stored));
+      setMode(selection.mode);
+      setTarget(selection.target);
+    } catch { /* ignore invalid saved controls */ }
+  }, [id]);
+  function selectCreation(nextMode: "explain" | "preview", nextTarget: CreationTarget) {
+    setMode(nextMode); setTarget(nextTarget);
+    if (id) sessionStorage.setItem(`aurelia-selection-${id}`, JSON.stringify({ mode: nextMode, target: nextTarget }));
+  }
   const activeTitle = projects.find((p) => p.id === id)?.title || title;
   async function newProject() {
     if (!userId) {
@@ -212,8 +242,9 @@ export function Workspace({
         const project = await create();
         sessionStorage.setItem(
           `aurelia-prompt-${project.id}`,
-          JSON.stringify({ text, mode: selectedMode }),
+          JSON.stringify({ text, mode: selectedMode, target }),
         );
+        sessionStorage.setItem(`aurelia-selection-${project.id}`, JSON.stringify({ mode: selectedMode, target }));
         await navigate({ to: "/chat/$threadId", params: { threadId: project.id } });
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Project could not be created.");
@@ -223,7 +254,7 @@ export function Workspace({
       }
       return;
     }
-    setMode(selectedMode);
+    selectCreation(selectedMode, target);
     void sendMessage({ text }, { body: { conversationId: id, mode: selectedMode } });
     textarea.current?.focus();
   }
@@ -231,8 +262,10 @@ export function Workspace({
     if (!id) return;
     const pending = sessionStorage.getItem(`aurelia-prompt-${id}`);
     if (!pending) return;
-    const parsed = JSON.parse(pending) as { text: string; mode: "preview" | "explain" };
-    setMode(parsed.mode);
+    const parsed = JSON.parse(pending) as { text: string; mode: "preview" | "explain"; target?: CreationTarget };
+    const selection = readCreationSelection(parsed);
+    setMode(selection.mode);
+    setTarget(selection.target);
     const timer = setTimeout(() => {
       sessionStorage.removeItem(`aurelia-prompt-${id}`);
       void sendMessage({ text: parsed.text }, { body: { conversationId: id, mode: parsed.mode } });
@@ -466,7 +499,8 @@ export function Workspace({
                     variant={mode === "explain" ? "secondary" : "ghost"}
                     size="sm"
                     aria-pressed={mode === "explain"}
-                    onClick={() => setMode("explain")}
+                    disabled={busy || creating}
+                    onClick={() => selectCreation("explain", target)}
                   >
                     <Code2 />
                     Generate & explain
@@ -475,7 +509,8 @@ export function Workspace({
                     variant={mode === "preview" ? "secondary" : "ghost"}
                     size="sm"
                     aria-pressed={mode === "preview"}
-                    onClick={() => setMode("preview")}
+                    disabled={busy || creating}
+                    onClick={() => selectCreation("preview", target)}
                   >
                     <Monitor />
                     Live preview
@@ -483,7 +518,7 @@ export function Workspace({
                 </div>
                 <div className="flex flex-wrap gap-1 pb-2" role="group" aria-label="Output type">
                   {([{ value: "code", label: "Code", icon: Code2 }, { value: "2d", label: "2D", icon: Image }, { value: "3d", label: "3D", icon: Box }, { value: "audio", label: "Audio", icon: Music }, { value: "video", label: "Video", icon: Video }] as const).map(({ value, label, icon: Icon }) => (
-                    <Button key={value} variant={target === value ? "secondary" : "ghost"} size="sm" aria-pressed={target === value} onClick={() => setTarget(value)}><Icon />{label}</Button>
+                    <Button key={value} variant={target === value ? "secondary" : "ghost"} size="sm" aria-pressed={target === value} disabled={busy || creating} onClick={() => selectCreation(mode, value)}><Icon />{label}</Button>
                   ))}
                 </div>
                 <PromptInput onSubmit={({ text }) => submit(text)}>
@@ -642,7 +677,13 @@ export function Workspace({
                       <code>pixels(r) → _</code>
                     </div>
                   )
-                ) : previewDoc ? (
+                ) : previewDoc ? null : (
+                  <div className="output-empty">
+                    <Monitor size={24} />
+                    <span>{doc ? "Preview ready to run" : "No browser output yet"}</span>
+                  </div>
+                )}
+                {previewDoc && (
                   <iframe
                     ref={previewFrame}
                     key={previewKey}
@@ -651,15 +692,10 @@ export function Workspace({
                     sandbox="allow-scripts"
                     referrerPolicy="no-referrer"
                     srcDoc={previewDoc}
-                    className="preview-frame"
+                    className={`preview-frame ${outputTab === "code" ? "hidden" : ""}`}
                   />
-                ) : (
-                  <div className="output-empty">
-                    <Monitor size={24} />
-                    <span>{doc ? "Preview ready to run" : "No browser output yet"}</span>
-                  </div>
                 )}
-                <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={previewReady && outputTab === "preview" && Boolean(previewDoc)} />
+                <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={!busy && previewReady && Boolean(previewDoc)} showPreview={() => setOutputTab("preview")} />
                 <div className="output-footer">
                   <span>
                     {files.length

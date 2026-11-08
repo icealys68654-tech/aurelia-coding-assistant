@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { creationRequest } from "@/lib/media";
+import { creationRequest, readCreationSelection } from "@/lib/media";
 import { buildPreview } from "@/lib/preview";
 describe("Canvas and media generation", () => {
+  it.each(["explain", "preview"] as const)("retains all four output selections in %s mode", (mode) => {
+    for (const target of ["2d", "3d", "audio", "video"] as const) expect(readCreationSelection({ mode, target })).toEqual({ mode, target });
+  });
+  it("defaults invalid saved selections safely", () => { expect(readCreationSelection({ mode: "invalid", target: "invalid" })).toEqual({ mode: "explain", target: "code" }); });
   it("preserves ordinary generate-and-explain requests", () => { expect(creationRequest("Explain Python", "code")).toBe("Explain Python"); });
   it("requests canvas output for 2D artwork", () => { expect(creationRequest("Draw a flower", "2d")).toContain("2D canvas artwork"); });
   it("requests canvas output for 3D artwork", () => { expect(creationRequest("Draw a cube", "3d")).toContain("3D canvas artwork"); });
