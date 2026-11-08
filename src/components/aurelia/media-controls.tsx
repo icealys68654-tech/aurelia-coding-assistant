@@ -43,7 +43,7 @@ export function MediaControls({ frame, revision, ready }: { frame: RefObject<HTM
       </label>
       {working && <span role="status" className="text-xs text-muted-foreground">{working === "video" ? "Recording…" : "Preparing…"}</span>}
       {working === "video" && <Button size="icon-sm" variant="ghost" title="Stop recording" aria-label="Stop recording" onClick={() => frame.current?.contentWindow?.postMessage({ channel: "aurelia-export", action: "stop" }, "*")}><Square /></Button>}
-      {result && <Button variant="secondary" size="sm" className="ml-auto" onClick={() => void deliverFile(result.blob, result.filename)}><Download />{result.filename.endsWith("png") ? "PNG" : result.filename.endsWith("wav") ? "WAV" : "Video"}</Button>}
+      {result && <Button variant="secondary" size="sm" className="ml-auto" aria-label={`Download ${result.filename.endsWith("png") ? "PNG" : result.filename.endsWith("wav") ? "WAV" : "video"}`} onClick={() => void deliverFile(result.blob, result.filename)}><Download />{result.filename.endsWith("png") ? "PNG" : result.filename.endsWith("wav") ? "WAV" : "Video"}</Button>}
     </div>
   );
 }
