@@ -5,6 +5,25 @@ export function fittedContent(width: number, height: number, contentWidth: numbe
   return { scale, x: (width - contentWidth * scale) / 2, y: (height - contentHeight * scale) / 2 };
 }
 
+export function releaseMediaClipping(body: HTMLElement) {
+  for (const media of body.querySelectorAll("canvas,img,video,svg")) {
+    if (media instanceof HTMLElement && ["cover", "none"].includes(getComputedStyle(media).objectFit)) {
+      media.style.setProperty("object-fit", "contain", "important");
+    }
+    const bounds = media.getBoundingClientRect();
+    for (let parent = media.parentElement; parent && parent !== body; parent = parent.parentElement) {
+      const box = parent.getBoundingClientRect();
+      const style = getComputedStyle(parent);
+      const clippedX = ["hidden", "clip", "auto", "scroll"].includes(style.overflowX || style.overflow);
+      const clippedY = ["hidden", "clip", "auto", "scroll"].includes(style.overflowY || style.overflow);
+      if ((clippedX && (bounds.left < box.left || bounds.right > box.right)) ||
+          (clippedY && (bounds.top < box.top || bounds.bottom > box.bottom))) {
+        parent.style.setProperty("overflow", "visible", "important");
+      }
+    }
+  }
+}
+
 function installPreviewFit() {
   const body = document.body;
   if (!body) return;
@@ -24,6 +43,7 @@ function installPreviewFit() {
     body.style.setProperty("transform", "none", "important");
     body.style.setProperty("left", "0", "important");
     body.style.setProperty("top", "0", "important");
+    releaseMediaClipping(body);
     let left = 0;
     let top = 0;
     let right = Math.max(width, body.scrollWidth, body.offsetWidth);
@@ -48,6 +68,7 @@ function installPreviewFit() {
   };
   window.addEventListener("resize", schedule);
   window.addEventListener("load", schedule);
+  body.addEventListener("load", schedule, true);
   new ResizeObserver(schedule).observe(body);
   for (const element of body.children) new ResizeObserver(schedule).observe(element);
   new MutationObserver(schedule).observe(body, { childList: true, subtree: true, characterData: true });
@@ -55,4 +76,4 @@ function installPreviewFit() {
   schedule();
 }
 
-export const previewFitScript = `const fittedContent = ${fittedContent.toString()}; (${installPreviewFit.toString()})();`;
+export const previewFitScript = `const fittedContent = ${fittedContent.toString()}; const releaseMediaClipping = ${releaseMediaClipping.toString()}; (${installPreviewFit.toString()})();`;

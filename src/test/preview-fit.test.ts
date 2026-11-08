@@ -1,7 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { GOLDEN_RATIO, fittedContent } from "@/lib/preview-fit";
+import { GOLDEN_RATIO, fittedContent, releaseMediaClipping } from "@/lib/preview-fit";
 
 describe("Golden rectangle canvas fitting", () => {
+  it("releases a container that clips the bottom of artwork", () => {
+    const body = document.createElement("div");
+    const container = document.createElement("div");
+    const canvas = document.createElement("canvas");
+    container.style.overflow = "hidden";
+    const rect = (height: number): DOMRect => ({ x: 0, y: 0, width: 600, height, top: 0, left: 0, right: 600, bottom: height, toJSON: () => ({}) });
+    container.getBoundingClientRect = () => rect(300);
+    canvas.getBoundingClientRect = () => rect(500);
+    container.append(canvas); body.append(container); document.body.append(body);
+    releaseMediaClipping(body);
+    expect(container.style.overflow).toBe("visible");
+    body.remove();
+  });
+  it("shows the complete image instead of object-fit cropping", () => {
+    const body = document.createElement("div");
+    const image = document.createElement("img");
+    image.style.objectFit = "cover"; body.append(image); document.body.append(body);
+    releaseMediaClipping(body);
+    expect(image.style.objectFit).toBe("contain");
+    body.remove();
+  });
   it("leaves equal top and bottom clearance for the complete content box", () => {
     const fit = fittedContent(800, 800 / GOLDEN_RATIO, 1200, 1000, 12);
     expect(fit.y).toBeCloseTo(12);
