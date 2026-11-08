@@ -195,8 +195,8 @@ export function Workspace({
     setPreviewReady(false);
     setPreviewKey((key) => key + 1);
     setPreviewDoc(exportDoc);
-    setOutputTab("preview");
-  }, [busy, answer?.id, text, exportDoc, error]);
+    setOutputTab(view === "live" ? "preview" : "code");
+  }, [busy, answer?.id, text, exportDoc, error, view]);
   useEffect(() => {
     if (!id) return;
     try {
@@ -214,6 +214,10 @@ export function Workspace({
   function openLivePreview() {
     setView("live");
     setOutputTab("preview");
+  }
+  function openWorkspace() {
+    setView("workspace");
+    setOutputTab("code");
   }
   const activeTitle = projects.find((p) => p.id === id)?.title || title;
   async function newProject() {
@@ -393,7 +397,7 @@ export function Workspace({
             </span>
           </header>
           <nav className="workspace-view-tabs" aria-label="Workspace view">
-            <Button variant={view === "workspace" ? "secondary" : "ghost"} size="sm" aria-pressed={view === "workspace"} onClick={() => setView("workspace")}><Code2 />Workspace</Button>
+            <Button variant={view === "workspace" ? "secondary" : "ghost"} size="sm" aria-pressed={view === "workspace"} onClick={openWorkspace}><Code2 />Workspace</Button>
             <Button variant={view === "live" ? "secondary" : "ghost"} size="sm" aria-pressed={view === "live"} onClick={openLivePreview}><Monitor />Live preview</Button>
           </nav>
           <div className={`workspace-body ${view === "live" ? "live-canvas-view" : ""}`}>
@@ -419,7 +423,7 @@ export function Workspace({
                             variant="outline"
                             className="suggestion"
                             onClick={() => {
-                              setMode(s.mode);
+                              selectCreation(s.mode, "code");
                               setInput(s.prompt);
                               textarea.current?.focus();
                             }}
@@ -471,6 +475,7 @@ export function Workspace({
                           <MessageActions>
                             <MessageAction
                               tooltip="Copy response"
+                              aria-label={`Copy assistant response ${m.id}`}
                               onClick={() =>
                                 copy(
                                   m.parts
@@ -522,7 +527,7 @@ export function Workspace({
                     onClick={() => selectCreation("preview", target)}
                   >
                     <Monitor />
-                    Live preview
+                    Generate for preview
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-1 pb-2" role="group" aria-label="Output type">
@@ -630,22 +635,10 @@ export function Workspace({
               <section className="output-section" aria-label="Canvas output">
                 <div className="output-toolbar">
                   <div className="flex gap-1">
-                    <Button
-                      variant={outputTab === "code" ? "secondary" : "ghost"}
-                      size="sm"
-                      onClick={() => setOutputTab("code")}
-                    >
-                      Code
-                    </Button>
-                    <Button
-                      variant={outputTab === "preview" ? "secondary" : "ghost"}
-                      size="sm"
-                      onClick={openLivePreview}
-                    >
-                      Preview
-                    </Button>
+                    <span className="min-w-0 text-xs font-medium">{view === "live" ? "Live canvas" : "Generated source"}</span>
                   </div>
-                  <div className="flex">
+                  <div className="flex shrink-0">
+                    {view === "workspace" && <>
                     <Button
                       size="icon-sm"
                       variant="ghost"
@@ -656,6 +649,7 @@ export function Workspace({
                     >
                       <Copy />
                     </Button>
+                    <Button variant="ghost" size="icon-sm" aria-label="Open canvas in Live preview" title="Open canvas in Live preview" onClick={openLivePreview}><Monitor /></Button>
                     <Button
                       size="icon-sm"
                       variant="ghost"
@@ -666,6 +660,7 @@ export function Workspace({
                     >
                       <Download />
                     </Button>
+                    </>}
                   </div>
                 </div>
                 {outputTab === "code" ? (
@@ -705,14 +700,16 @@ export function Workspace({
                     className={`preview-frame ${outputTab === "code" ? "hidden" : ""}`}
                   />
                 )}
-                <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={!busy && previewReady && Boolean(previewDoc)} showPreview={openLivePreview} />
+                <div className={view === "live" ? "" : "hidden"}>
+                  <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={!busy && previewReady && Boolean(previewDoc)} showPreview={openLivePreview} />
+                </div>
                 <div className="output-footer">
                   <span>
                     {files.length
                       ? `${files.length} code block${files.length > 1 ? "s" : ""}`
                       : "Execution idle"}
                   </span>
-                  <Button
+                  {view === "live" && <Button
                     variant="ghost"
                     size="sm"
                     disabled={!doc || busy}
@@ -724,8 +721,8 @@ export function Workspace({
                     }}
                   >
                     {previewDoc ? <RotateCcw /> : <Play />}
-                    {previewDoc ? "Rerun" : "Run preview"}
-                  </Button>
+                    {previewDoc ? "Restart canvas" : "Run canvas"}
+                  </Button>}
                 </div>
               </section>
           </div>
