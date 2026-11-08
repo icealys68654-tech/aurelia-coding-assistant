@@ -695,7 +695,7 @@ export function Workspace({
                     className={`preview-frame ${outputTab === "code" ? "hidden" : ""}`}
                   />
                 )}
-                <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={!busy && previewReady && Boolean(previewDoc)} />
+                <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={!busy && previewReady && Boolean(previewDoc)} showPreview={() => setOutputTab("preview")} />
                 <div className="output-footer">
                   <span>
                     {files.length

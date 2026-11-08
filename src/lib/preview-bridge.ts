@@ -56,6 +56,7 @@ function installBridge() {
               recorder.start();
               timer = setTimeout(() => { if (recorder.state === "recording") recorder.stop(); }, duration * 1000);
             });
+            if (result.size < 256) throw new Error("No video frames were captured. Keep the preview visible and try again.");
             reply({ blob: result, filename: mime.startsWith("video/mp4") ? "aurelia-video.mp4" : "aurelia-video.webm" });
           } finally { stream.getTracks().forEach((track) => track.stop()); recording = undefined; }
         } else throw new Error("Unknown export format.");

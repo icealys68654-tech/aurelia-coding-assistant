@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { deliverFile } from "@/lib/media";
 import { toast } from "sonner";
 
-export function MediaControls({ frame, revision, ready }: { frame: RefObject<HTMLIFrameElement | null>; revision: string | null; ready: boolean }) {
+export function MediaControls({ frame, revision, ready, showPreview }: { frame: RefObject<HTMLIFrameElement | null>; revision: string | null; ready: boolean; showPreview: () => void }) {
   const [duration, setDuration] = useState(5);
   const [working, setWorking] = useState<string | null>(null);
   const [results, setResults] = useState<Record<string, { blob: Blob; filename: string }>>({});
@@ -30,10 +30,13 @@ export function MediaControls({ frame, revision, ready }: { frame: RefObject<HTM
   }, [frame, revision]);
   function prepare(action: string) {
     if (!frame.current?.contentWindow || pending.current) return;
+    showPreview();
     setWorking(action);
     const id = crypto.randomUUID();
     pending.current = { id, action, timer: setTimeout(() => { pending.current = null; setWorking(null); toast.error("Export timed out. Rerun the preview and try again."); }, (duration + 15) * 1000) };
-    frame.current.contentWindow.postMessage({ channel: "aurelia-export", id, action, duration }, "*");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (pending.current?.id === id) frame.current?.contentWindow?.postMessage({ channel: "aurelia-export", id, action, duration }, "*");
+    }));
   }
   return (
     <div className="flex flex-col gap-3 border-t border-border px-3 py-3" role="group" aria-label="Artwork, audio and video exports">
