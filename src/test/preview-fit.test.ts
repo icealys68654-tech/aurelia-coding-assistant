@@ -1,7 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { GOLDEN_RATIO, fittedContent, releaseMediaClipping } from "@/lib/preview-fit";
+import { GOLDEN_RATIO, canvasInset, fittedContent, releaseMediaClipping } from "@/lib/preview-fit";
 
 describe("Golden rectangle canvas fitting", () => {
+  it.each([[400, 1600], [1600, 400], [900, 900], [2400, 100]])("contains %i × %i artwork without changing its shape", (w, h) => {
+    const width = 390, height = width / GOLDEN_RATIO;
+    const inset = canvasInset(width, height);
+    const fit = fittedContent(width, height, w, h, inset);
+    expect(fit.x).toBeGreaterThanOrEqual(inset - 0.000001);
+    expect(fit.y).toBeGreaterThanOrEqual(inset - 0.000001);
+    expect(fit.x + w * fit.scale).toBeLessThanOrEqual(width - inset + 0.000001);
+    expect(fit.y + h * fit.scale).toBeLessThanOrEqual(height - inset + 0.000001);
+    expect(w * fit.scale / (h * fit.scale)).toBeCloseTo(w / h);
+  });
+  it("adapts padding to small canvases", () => {
+    expect(canvasInset(390, 240)).toBe(6);
+    expect(canvasInset(800, 500)).toBe(12);
+  });
   it("releases a container that clips the bottom of artwork", () => {
     const body = document.createElement("div");
     const container = document.createElement("div");
