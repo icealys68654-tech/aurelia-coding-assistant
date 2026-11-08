@@ -9,5 +9,5 @@
 - [x] Verify all four output types in both assistant modes with real downloads.
 - [x] Responsive workspace grid and large linked Live preview canvas.
 - [x] Verify desktop, laptop, tablet and phone layouts and exports.
-- [ ] Group unique creation/source controls in Workspace and execution/export controls in Live preview.
-- [ ] Verify view switching, source downloads, media exports and retained selections.
+- [x] Group unique creation/source controls in Workspace and execution/export controls in Live preview.
+- [x] Verify view switching, source downloads, media exports and retained selections.
