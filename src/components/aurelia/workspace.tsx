@@ -650,7 +650,6 @@ export function Workspace({
                       <Copy />
                     </Button>
                     <Button variant="ghost" size="icon-sm" aria-label="Open canvas in Live preview" title="Open canvas in Live preview" onClick={openLivePreview}><Monitor /></Button>
-                    </>}
                     <Button
                       size="icon-sm"
                       variant="ghost"
@@ -661,6 +660,7 @@ export function Workspace({
                     >
                       <Download />
                     </Button>
+                    </>}
                   </div>
                 </div>
                 {outputTab === "code" ? (
