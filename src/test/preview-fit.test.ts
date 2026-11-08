@@ -7,8 +7,9 @@ describe("Golden rectangle canvas fitting", () => {
     const container = document.createElement("div");
     const canvas = document.createElement("canvas");
     container.style.overflow = "hidden";
-    container.getBoundingClientRect = () => new DOMRect(0, 0, 600, 300);
-    canvas.getBoundingClientRect = () => new DOMRect(0, 0, 600, 500);
+    const rect = (height: number): DOMRect => ({ x: 0, y: 0, width: 600, height, top: 0, left: 0, right: 600, bottom: height, toJSON: () => ({}) });
+    container.getBoundingClientRect = () => rect(300);
+    canvas.getBoundingClientRect = () => rect(500);
     container.append(canvas); body.append(container); document.body.append(body);
     releaseMediaClipping(body);
     expect(container.style.overflow).toBe("visible");
