@@ -1,5 +1,4 @@
 import { previewBridge } from "./preview-bridge";
-import { previewFitScript } from "./preview-fit";
 export type CodeFile = { language: string; code: string };
 export function extractCode(text: string): CodeFile[] {
   const fenced = Array.from(text.matchAll(/```([\w+-]*)[^\n]*\n([\s\S]*?)```/g), (m) => ({
@@ -22,5 +21,5 @@ export function buildPreview(files: CodeFile[], withExports = false): string | n
     .map((f) => f.code.replace(/<\/script/gi, "<\\/script"))
     .join("\n");
   const policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none';">`;
-  return `<!doctype html><html><head>${policy}<style>${css}</style>${withExports ? `<script>${previewBridge}</script>` : ""}</head><body>${html}<script>${js}</script>${withExports ? `<script>${previewFitScript}</script>` : ""}</body></html>`;
+  return `<!doctype html><html><head>${policy}<style>${css}</style>${withExports ? `<script>${previewBridge}</script>` : ""}</head><body>${html}<script>${js}</script></body></html>`;
 }
