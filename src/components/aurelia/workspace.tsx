@@ -677,7 +677,13 @@ export function Workspace({
                       <code>pixels(r) → _</code>
                     </div>
                   )
-                ) : previewDoc ? (
+                ) : previewDoc ? null : (
+                  <div className="output-empty">
+                    <Monitor size={24} />
+                    <span>{doc ? "Preview ready to run" : "No browser output yet"}</span>
+                  </div>
+                )}
+                {previewDoc && (
                   <iframe
                     ref={previewFrame}
                     key={previewKey}
@@ -686,15 +692,10 @@ export function Workspace({
                     sandbox="allow-scripts"
                     referrerPolicy="no-referrer"
                     srcDoc={previewDoc}
-                    className="preview-frame"
+                    className={`preview-frame ${outputTab === "code" ? "hidden" : ""}`}
                   />
-                ) : (
-                  <div className="output-empty">
-                    <Monitor size={24} />
-                    <span>{doc ? "Preview ready to run" : "No browser output yet"}</span>
-                  </div>
                 )}
-                <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={previewReady && outputTab === "preview" && Boolean(previewDoc)} />
+                <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={!busy && previewReady && Boolean(previewDoc)} />
                 <div className="output-footer">
                   <span>
                     {files.length
