@@ -7,3 +7,5 @@
 - [x] Verify isolated exports and authenticated generation.
 - [x] Fix creation selections, automatic current preview, and per-format export wiring.
 - [x] Verify all four output types in both assistant modes with real downloads.
+- [ ] Responsive workspace grid and large linked Live preview canvas.
+- [ ] Verify desktop, laptop, tablet and phone layouts and exports.
