@@ -12,8 +12,9 @@ export function MediaControls({ frame, revision, ready }: { frame: RefObject<HTM
   useEffect(() => {
     setResult(null); setWorking(null);
     const receive = (event: MessageEvent) => {
-      if (event.source !== frame.current?.contentWindow || event.data?.channel !== "aurelia-export" || event.data.id !== pending.current?.id) return;
-      clearTimeout(pending.current.timer); pending.current = null; setWorking(null);
+      const request = pending.current;
+      if (!request || event.source !== frame.current?.contentWindow || event.data?.channel !== "aurelia-export" || event.data.id !== request.id) return;
+      clearTimeout(request.timer); pending.current = null; setWorking(null);
       if (typeof event.data.error === "string") { toast.error(event.data.error); return; }
       const blob = event.data.blob;
       const formats: Record<string, string> = { "image/png": "aurelia-artwork.png", "audio/wav": "aurelia-audio.wav", "video/webm": "aurelia-video.webm", "video/mp4": "aurelia-video.mp4" };
