@@ -39,7 +39,7 @@ export function MediaControls({ frame, revision, ready, showPreview }: { frame: 
     }));
   }
   return (
-    <div className="flex flex-col gap-3 border-t border-border px-3 py-3" role="group" aria-label="Artwork, audio and video exports">
+    <div className="flex flex-col gap-2 border-t border-border px-3 py-2" role="group" aria-label="Artwork, audio and video exports">
       <span className="text-xs font-medium text-foreground">Export files</span>
       <div className="grid grid-cols-3 gap-2">
         {([{ action: "image", label: "Prepare PNG", text: "Artwork", format: "PNG", icon: Image }, { action: "audio", label: "Prepare WAV", text: "Audio", format: "WAV", icon: Music }, { action: "video", label: "Record video", text: "Video", format: "Record", icon: Video }]).map(({ action, label, text, format, icon: Icon }) => (

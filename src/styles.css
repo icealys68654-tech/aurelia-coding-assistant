@@ -250,6 +250,7 @@ code, pre, .eyebrow, .sidebar-caption, .engine-label, .execution-header, .sphere
 .preview-frame { width: 100%; min-width: 0; min-height: 420px; flex: 1; background: var(--card); border: 0; }
 .live-canvas-view .preview-frame.preview-frame { aspect-ratio: 1.61803398875 / 1; width: min(100%, calc(max(160px, 100dvh - 360px) * 1.61803398875)); height: auto; min-height: 0; flex: none; align-self: center; display: block; }
 .live-canvas-view .output-section { min-height: 0; align-self: start; }
+.live-canvas-view .output-footer { padding-block: 4px; }
 .workspace-footer { height: 43px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 27px; border-top: 1px solid var(--border); font-size: 9px; }
 .workspace-footer>span:last-child { color: var(--muted-foreground); font-size: 8px; }
 .google-auth { background: var(--google-bg); color: var(--google-text); border-color: var(--google-border); }
