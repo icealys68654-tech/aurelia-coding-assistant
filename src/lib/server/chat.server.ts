@@ -3,6 +3,7 @@ import { convertToModelMessages, validateUIMessages, type UIMessage } from "ai";
 import { createResponsesCall } from "./responses.ts";
 import { withLovableAiGatewayRunIdHeader } from "./run-id.ts";
 import type { Json } from "@/integrations/supabase/types";
+import { mediaInstructions } from "@/lib/media";
 
 export async function handleChat(request: Request) {
   const url = process.env["SUPABASE_URL"];
