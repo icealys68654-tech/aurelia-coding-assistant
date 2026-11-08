@@ -35,3 +35,4 @@ use the editor.
 - Compose chat with AI Elements and execute only completed HTML output in a scripts-only sandbox with network-blocking CSP; generated code must never access the host application.
 - Keep the rainbow sphere as an interactive canvas identity and the four-layer pipeline as conceptual organization; it is not an LLM implementation.
 - Export canvas PNG/video and offline synthesized WAV through request-scoped iframe messages; validate source, MIME and size and require a separate download click to preserve mobile user activation.
+- Persist creation controls per project in session storage and automatically mount only finished HTML answers; clear stale previews during generation so exports match the current answer.
