@@ -34,3 +34,4 @@ use the editor.
 - Stream AI through the authenticated TanStack HTTP chat boundary and server-only Gateway helpers; this protects secrets while preserving live generation and cancellation.
 - Compose chat with AI Elements and execute only completed HTML output in a scripts-only sandbox with network-blocking CSP; generated code must never access the host application.
 - Keep the rainbow sphere as an interactive canvas identity and the four-layer pipeline as conceptual organization; it is not an LLM implementation.
+- Export canvas PNG/video and offline synthesized WAV through request-scoped iframe messages; validate source, MIME and size and require a separate download click to preserve mobile user activation.

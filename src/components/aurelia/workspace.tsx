@@ -19,6 +19,10 @@ import {
   PanelLeftOpen,
   ChevronRight,
   RotateCcw,
+  Image,
+  Box,
+  Music,
+  Video,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -55,6 +59,8 @@ import { buildPreview, extractCode } from "@/lib/preview";
 import { Sphere } from "./sphere";
 import { Auth } from "./auth";
 import { toast } from "sonner";
+import { creationRequest, downloadBlob, type CreationTarget } from "@/lib/media";
+import { MediaControls } from "./media-controls";
 
 export const conversationOptions = (id: string) =>
   queryOptions({
@@ -112,6 +118,10 @@ export function Workspace({
   const [authOpen, setAuthOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mode, setMode] = useState<"explain" | "preview">("explain");
+  const [target, setTarget] = useState<CreationTarget>("code");
+  const previewFrame = useRef<HTMLIFrameElement>(null);
+  const [previewReady, setPreviewReady] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
   const [xor, setXor] = useState(false);
   const [spin, setSpin] = useState(10);
   const [input, setInput] = useState("");
@@ -169,6 +179,7 @@ export function Workspace({
       .join("\n") || "";
   const files = extractCode(text);
   const doc = buildPreview(files);
+  const exportDoc = buildPreview(files, true);
   const activeTitle = projects.find((p) => p.id === id)?.title || title;
   async function newProject() {
     if (!userId) {
@@ -194,6 +205,7 @@ export function Workspace({
       return;
     }
     setInput("");
+    text = creationRequest(text, target);
     if (!id) {
       setCreating(true);
       try {
@@ -237,14 +249,7 @@ export function Workspace({
   }
   function download() {
     const content = doc || files.map((f) => f.code).join("\n\n");
-    const url = URL.createObjectURL(
-      new Blob([content], { type: doc ? "text/html" : "text/plain" }),
-    );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = doc ? "aurelia.html" : "aurelia-code.txt";
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(new Blob([content], { type: doc ? "text/html" : "text/plain" }), doc ? "aurelia.html" : "aurelia-code.txt");
   }
   return (
     <TooltipProvider>
@@ -476,6 +481,11 @@ export function Workspace({
                     Live preview
                   </Button>
                 </div>
+                <div className="flex flex-wrap gap-1 pb-2" role="group" aria-label="Output type">
+                  {([{ value: "code", label: "Code", icon: Code2 }, { value: "2d", label: "2D", icon: Image }, { value: "3d", label: "3D", icon: Box }, { value: "audio", label: "Audio", icon: Music }, { value: "video", label: "Video", icon: Video }] as const).map(({ value, label, icon: Icon }) => (
+                    <Button key={value} variant={target === value ? "secondary" : "ghost"} size="sm" aria-pressed={target === value} onClick={() => setTarget(value)}><Icon />{label}</Button>
+                  ))}
+                </div>
                 <PromptInput onSubmit={({ text }) => submit(text)}>
                   <PromptInputTextarea
                     ref={textarea}
@@ -634,6 +644,9 @@ export function Workspace({
                   )
                 ) : previewDoc ? (
                   <iframe
+                    ref={previewFrame}
+                    key={previewKey}
+                    onLoad={() => setPreviewReady(true)}
                     title="Generated code preview"
                     sandbox="allow-scripts"
                     referrerPolicy="no-referrer"
@@ -646,6 +659,7 @@ export function Workspace({
                     <span>{doc ? "Preview ready to run" : "No browser output yet"}</span>
                   </div>
                 )}
+                <MediaControls frame={previewFrame} revision={`${previewKey}:${previewDoc}`} ready={previewReady && outputTab === "preview" && Boolean(previewDoc)} />
                 <div className="output-footer">
                   <span>
                     {files.length
@@ -657,7 +671,9 @@ export function Workspace({
                     size="sm"
                     disabled={!doc || busy}
                     onClick={() => {
-                      setPreviewDoc(doc);
+                      setPreviewReady(false);
+                      setPreviewKey((key) => key + 1);
+                      setPreviewDoc(exportDoc);
                       setOutputTab("preview");
                     }}
                   >
