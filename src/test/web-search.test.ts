@@ -11,3 +11,4 @@ describe("mergeHits", () => {
     expect(out[0]!.engines).toEqual(["Bing", "DuckDuckGo"]);
   });
 });
+
