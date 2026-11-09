@@ -61,6 +61,8 @@ import { Auth } from "./auth";
 import { toast } from "sonner";
 import { creationRequest, downloadBlob, readCreationSelection, type CreationTarget } from "@/lib/media";
 import { MediaControls } from "./media-controls";
+import { readUpload, UPLOAD_ACCEPT } from "@/lib/uploads";
+import type { FileUIPart } from "ai";
 
 export const conversationOptions = (id: string) =>
   queryOptions({
@@ -237,13 +239,16 @@ export function Workspace({
       setCreating(false);
     }
   }
+  const [attachments, setAttachments] = useState<FileUIPart[]>([]);
   async function submit(text: string, selectedMode = mode) {
     if (!text.trim() || busy) return;
+    const sentFiles = attachments;
     if (!userId) {
       setAuthOpen(true);
       return;
     }
     setInput("");
+    setAttachments([]);
     text = creationRequest(text, target);
     if (!id) {
       setCreating(true);
@@ -251,33 +256,34 @@ export function Workspace({
         const project = await create();
         sessionStorage.setItem(
           `aurelia-prompt-${project.id}`,
-          JSON.stringify({ text, mode: selectedMode, target }),
+          JSON.stringify({ text, mode: selectedMode, target, files: sentFiles }),
         );
         sessionStorage.setItem(`aurelia-selection-${project.id}`, JSON.stringify({ mode: selectedMode, target }));
         await navigate({ to: "/chat/$threadId", params: { threadId: project.id } });
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Project could not be created.");
         setInput(text);
+        setAttachments(sentFiles);
       } finally {
         setCreating(false);
       }
       return;
     }
     selectCreation(selectedMode, target);
-    void sendMessage({ text }, { body: { conversationId: id, mode: selectedMode } });
+    void sendMessage({ text, files: sentFiles }, { body: { conversationId: id, mode: selectedMode } });
     textarea.current?.focus();
   }
   useEffect(() => {
     if (!id) return;
     const pending = sessionStorage.getItem(`aurelia-prompt-${id}`);
     if (!pending) return;
-    const parsed = JSON.parse(pending) as { text: string; mode: "preview" | "explain"; target?: CreationTarget };
+    const parsed = JSON.parse(pending) as { text: string; mode: "preview" | "explain"; target?: CreationTarget; files?: FileUIPart[] };
     const selection = readCreationSelection(parsed);
     setMode(selection.mode);
     setTarget(selection.target);
     const timer = setTimeout(() => {
       sessionStorage.removeItem(`aurelia-prompt-${id}`);
-      void sendMessage({ text: parsed.text }, { body: { conversationId: id, mode: parsed.mode } });
+      void sendMessage({ text: parsed.text, files: parsed.files ?? [] }, { body: { conversationId: id, mode: parsed.mode } });
     }, 0);
     return () => clearTimeout(timer);
   }, [id, sendMessage]);
@@ -544,6 +550,15 @@ export function Workspace({
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                   />
+                  {attachments.length > 0 && (
+                    <div className="flex flex-wrap gap-1 px-3 pt-2">
+                      {attachments.map((f, i) => (
+                        <button key={i} type="button" className="rounded border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground" aria-label={`Remove ${f.filename}`} onClick={() => setAttachments((all) => all.filter((_, j) => j !== i))}>
+                          {f.filename} ×
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <PromptInputFooter>
                     <span className="composer-engine">
                       <span className="status-dot" />
@@ -553,20 +568,24 @@ export function Workspace({
                       Upload file
                       <input
                         type="file"
+                        multiple
                         className="sr-only"
                         aria-label="Upload file"
                         disabled={busy || creating}
-                        accept=".txt,.md,.html,.htm,.css,.js,.jsx,.ts,.tsx,.json,.py,.java,.c,.cpp,.h,.cs,.go,.rs,.rb,.php,.sh,.sql,.xml,.yml,.yaml,.svg,text/*"
+                        accept={UPLOAD_ACCEPT}
                         onChange={async (e) => {
-                          const file = e.target.files?.[0];
+                          const list = Array.from(e.target.files ?? []);
                           e.target.value = "";
-                          if (!file) return;
-                          if (file.size > 200_000) return void toast.error("Files must be under 200 KB.");
-                          const content = await file.text();
-                          if (content.includes("\u0000")) return void toast.error("Only text or code files can be uploaded.");
-                          const ext = file.name.split(".").pop() ?? "";
-                          setInput((prev) => `${prev ? prev + "\n\n" : ""}File: ${file.name}\n\`\`\`${ext}\n${content}\n\`\`\``);
-                          toast.success(`${file.name} added`);
+                          for (const file of list) {
+                            try {
+                              const r = await readUpload(file);
+                              if (r.kind === "file") setAttachments((f) => [...f, r.part]);
+                              else setInput((prev) => `${prev ? prev + "\n\n" : ""}${r.text}`);
+                              toast.success(`${file.name} added`);
+                            } catch (err) {
+                              toast.error(`${file.name}: ${err instanceof Error ? err.message : "could not be added"}`);
+                            }
+                          }
                           textarea.current?.focus();
                         }}
                       />
