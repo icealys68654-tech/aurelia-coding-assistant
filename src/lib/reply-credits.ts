@@ -1,6 +1,6 @@
 import type { LanguageModelUsage } from "ai";
 
-type Tier = { cost: number; min: number; max?: number };
+type Tier = { cost: number; min: number; max?: number | undefined };
 export type CreditRates = { input: Tier[]; output: Tier[]; read: Tier[]; write: Tier[] };
 export type ReplyCredits = { estimatedCredits: number | null; steps: number; complete: boolean; model: string; pricedAt: string | null };
 
