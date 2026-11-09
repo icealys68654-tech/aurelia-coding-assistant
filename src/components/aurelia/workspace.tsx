@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AgentStep, type AgentPart } from "@/components/aurelia/agent-step";
+import { ReplyCost } from "@/components/aurelia/reply-cost";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -452,8 +453,9 @@ export function Workspace({
                   ) : (
                     messages.map((m) => (
                       <Message key={m.id} from={m.role}>
-                        <div className="message-label">
+                        <div className="message-label flex flex-wrap items-center gap-x-3 gap-y-1">
                           {m.role === "assistant" ? "AURELIA" : "YOU"}
+                          {m.role === "assistant" && <ReplyCost metadata={m.metadata} pending={busy && m.id === messages.at(-1)?.id} />}
                         </div>
                         <MessageContent
                           className={

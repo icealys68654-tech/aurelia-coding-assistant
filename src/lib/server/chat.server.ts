@@ -5,6 +5,8 @@ import { withLovableAiGatewayRunIdHeader } from "./run-id.ts";
 import type { Json } from "@/integrations/supabase/types";
 import { mediaInstructions } from "@/lib/media";
 import { agentInstructions, agentTools } from "./agent.server";
+import { createReplyCreditTracker } from "@/lib/reply-credits";
+import { loadReplyPricing } from "./reply-pricing.server";
 
 export async function handleChat(request: Request) {
   const url = process.env["SUPABASE_URL"];
@@ -87,6 +89,8 @@ export async function handleChat(request: Request) {
       const search = await searchWeb(query);
       webContext = " " + searchContext(search.results, search.providers);
     }
+    const pricing = ai.direct ? null : await loadReplyPricing(apiKey, ai.model);
+    const credits = createReplyCreditTracker(ai.model, pricing?.rates ?? null, pricing?.pricedAt ?? null);
     const { result, runIdFetch } = createResponsesCall(
       request,
       { ...ai, apiKey },
@@ -98,6 +102,15 @@ export async function handleChat(request: Request) {
     const response = result.toUIMessageStreamResponse({
       originalMessages: messages,
       sendReasoning: true,
+      messageMetadata: ({ part }) => {
+        if (part.type === "finish-step") {
+          credits.add(part.usage);
+          return { replyCredits: credits.snapshot(false) };
+        }
+        if (part.type === "finish") return { replyCredits: credits.snapshot(true) };
+        if (part.type === "abort" || part.type === "error") return { replyCredits: credits.snapshot(false) };
+        return undefined;
+      },
       onFinish: async ({ messages: finished }) => {
         const { error: saveError } = await client
           .from("conversations")
