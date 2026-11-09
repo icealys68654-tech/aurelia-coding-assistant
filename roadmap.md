@@ -1,5 +1,7 @@
 # AURELIA coding assistant
-- [ ] Repair shared multi-source web search and verify chat/assistant results.
+- [x] Repair shared multi-source search; verify real DuckDuckGo, Stack Overflow and MDN results through shared and tool handlers.
+- [ ] Verify full chat answers after Lovable AI is enabled (blocked by workspace AI setting).
+- [ ] Verify updated signed-in hosted MCP searches after republishing (blocked by publication).
 - [x] Saved private project conversations and sign-in.
 - [x] Streaming coding assistant with generate/explain and live-preview modes.
 - [x] AURELIA sphere, XOR control and four-layer workspace.
