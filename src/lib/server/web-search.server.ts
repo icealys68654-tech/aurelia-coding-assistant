@@ -39,22 +39,12 @@ export function parseDuckDuckGo(html: string): SearchHit[] {
   return out;
 }
 
-export function parseBing(html: string): SearchHit[] {
+export function parseBing(xml: string): SearchHit[] {
   const out: SearchHit[] = [];
-  for (const block of html.split('<li class="b_algo"').slice(1)) {
-    const a = block.match(/<h2[^>]*>\s*<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/);
-    if (!a) continue;
-    const p = block.match(/<p[^>]*>([\s\S]*?)<\/p>/);
-    let href = a[1]!.replace(/&amp;/g, "&");
-    const enc = href.match(/[?&]u=a1([^&]+)/);
-    if (enc) {
-      try {
-        href = atob(enc[1]!.replace(/-/g, "+").replace(/_/g, "/"));
-      } catch {
-        /* keep redirect link */
-      }
-    }
-    out.push({ title: decode(a[2]!), url: href, snippet: decode(p?.[1] ?? ""), engines: ["Bing"] });
+  for (const m of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
+    const tag = (n: string) => decode(m[1]!.match(new RegExp(`<${n}>([\\s\\S]*?)</${n}>`))?.[1] ?? "");
+    const url = tag("link");
+    if (url) out.push({ title: tag("title"), url, snippet: tag("description"), engines: ["Bing"] });
   }
   return out;
 }
@@ -63,7 +53,7 @@ async function duckduckgo(q: string) {
   return parseDuckDuckGo(await get(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`));
 }
 async function bing(q: string) {
-  return parseBing(await get(`https://www.bing.com/search?q=${encodeURIComponent(q)}&setlang=en`));
+  return parseBing(await get(`https://www.bing.com/search?format=rss&setlang=en&cc=US&q=${encodeURIComponent(q)}`));
 }
 async function wikipedia(q: string): Promise<SearchHit[]> {
   const data = JSON.parse(

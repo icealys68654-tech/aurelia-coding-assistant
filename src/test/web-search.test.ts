@@ -11,3 +11,11 @@ describe("mergeHits", () => {
     expect(out[0]!.engines).toEqual(["Bing", "DuckDuckGo"]);
   });
 });
+
+import { parseBing } from "@/lib/server/web-search.server";
+describe("parseBing", () => {
+  it("reads results from Bing's feed", () => {
+    const out = parseBing("<item><title>T &amp; U</title><link>https://a.com/x</link><description>D</description></item>");
+    expect(out).toEqual([{ title: "T & U", url: "https://a.com/x", snippet: "D", engines: ["Bing"] }]);
+  });
+});
