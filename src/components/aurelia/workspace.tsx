@@ -180,8 +180,14 @@ export function Workspace({
     if (!busy && !authOpen) textarea.current?.focus();
   }, [busy, authOpen, id]);
   const answer = messages.filter((m) => m.role === "assistant").at(-1);
+  // Agent replies can contain several drafts (before/after check_html); use only the final step's code
+  // so earlier CSS/JS blocks are not concatenated with the fixed version.
+  const answerParts = answer?.parts ?? [];
+  const lastTool = answerParts.findLastIndex((p) => p.type.startsWith("tool-"));
+  const finalParts = answerParts.slice(lastTool + 1);
+  const codeParts = finalParts.some((p) => p.type === "text" && p.text.includes("```")) ? finalParts : answerParts;
   const text =
-    answer?.parts
+    codeParts
       .filter((p) => p.type === "text")
       .map((p) => p.text)
       .join("\n") || "";
@@ -473,7 +479,7 @@ export function Workspace({
                                 {part.text}
                               </MessageResponse>
                             ) : part.type.startsWith("tool-") ? (
-                              <AgentStep key={i} part={part as unknown as AgentPart} />
+                              <AgentStep key={i} part={part as unknown as AgentPart} active={busy && m.id === messages.at(-1)?.id} />
                             ) : part.type === "reasoning" ? (
                               <Reasoning
                                 key={i}

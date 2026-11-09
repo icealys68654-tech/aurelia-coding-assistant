@@ -10,10 +10,11 @@ export type AgentPart = {
 
 type Source = { n: number; title: string; url: string };
 
-export function AgentStep({ part }: { part: AgentPart }) {
+export function AgentStep({ part, active = false }: { part: AgentPart; active?: boolean }) {
   const name = part.type.slice(5);
   const done = part.state === "output-available";
-  const failed = part.state === "output-error";
+  // A step left unfinished after the stream ended (stopped, errored, reloaded) must not spin forever.
+  const failed = part.state === "output-error" || part.state === "output-denied" || (!done && !active);
   const Icon = name === "plan" ? ListChecks : name === "web_search" ? Search : ShieldCheck;
   const title =
     name === "plan"
@@ -68,7 +69,7 @@ export function AgentStep({ part }: { part: AgentPart }) {
           {problems && problems.length ? `Found: ${problems.join(" ")}` : "No problems found."}
         </p>
       )}
-      {failed && <p className="mt-2 text-destructive">{part.errorText ?? "This step failed."}</p>}
+      {failed && <p className="mt-2 text-destructive">{part.errorText ?? (part.state === "output-error" ? "This step failed." : "This step did not finish.")}</p>}
     </div>
   );
 }
