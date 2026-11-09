@@ -183,7 +183,8 @@ export function Workspace({
   // Agent replies can contain several drafts (before/after check_html); use only the final step's code
   // so earlier CSS/JS blocks are not concatenated with the fixed version.
   const answerParts = answer?.parts ?? [];
-  const lastTool = answerParts.findLastIndex((p) => p.type.startsWith("tool-"));
+  let lastTool = -1;
+  answerParts.forEach((p, i) => { if (p.type.startsWith("tool-")) lastTool = i; });
   const finalParts = answerParts.slice(lastTool + 1);
   const codeParts = finalParts.some((p) => p.type === "text" && p.text.includes("```")) ? finalParts : answerParts;
   const text =
