@@ -1,4 +1,5 @@
 # AURELIA coding assistant
+- [ ] Repair shared multi-source web search and verify chat/assistant results.
 - [x] Saved private project conversations and sign-in.
 - [x] Streaming coding assistant with generate/explain and live-preview modes.
 - [x] AURELIA sphere, XOR control and four-layer workspace.
