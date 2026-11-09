@@ -53,7 +53,7 @@ async function duckduckgo(q: string) {
   return parseDuckDuckGo(await get(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`));
 }
 async function bing(q: string) {
-  return parseBing(await get(`https://www.bing.com/search?format=rss&setlang=en&cc=US&q=${encodeURIComponent(q)}`, 6000, "Mozilla/5.0"));
+  return parseBing(await get(`https://www.bing.com/search?format=rss&q=${encodeURIComponent(q)}`, 6000, "Mozilla/5.0"));
 }
 async function wikipedia(q: string): Promise<SearchHit[]> {
   const data = JSON.parse(
