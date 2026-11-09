@@ -9,10 +9,17 @@ import "@lovable.dev/cloud-auth-js/styles.css";
 export function Auth({
   open,
   onOpenChange,
+  next,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  next?: string;
 }) {
+  const returnUrl = () => (next ? new URL(next, window.location.origin).href : window.location.origin);
+  const done = () => {
+    if (next) window.location.assign(next);
+    else onOpenChange(false);
+  };
   const [signup, setSignup] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,10 +28,10 @@ export function Auth({
   async function social(provider: "google" | "lovable") {
     setNote("");
     const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
+      redirect_uri: returnUrl(),
     });
     if (result.error) setNote(result.error.message);
-    else if (!result.redirected) onOpenChange(false);
+    else if (!result.redirected) done();
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -67,12 +74,12 @@ export function Auth({
               ? await supabase.auth.signUp({
                   email,
                   password,
-                  options: { emailRedirectTo: window.location.origin },
+                  options: { emailRedirectTo: returnUrl() },
                 })
               : await supabase.auth.signInWithPassword({ email, password });
             setBusy(false);
             if (error) setNote(error.message);
-            else if (data.session) onOpenChange(false);
+            else if (data.session) done();
             else setNote("Check your email to confirm your account.");
           }}
         >

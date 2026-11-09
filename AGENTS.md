@@ -38,3 +38,4 @@ use the editor.
 - Persist creation controls per project in session storage and automatically mount only finished HTML answers; clear stale previews during generation so exports match the current answer.
 - Use named grid areas for chat, canvas output and engine across screen sizes; keep a single preview iframe mounted when changing workspace views to preserve execution and export state.
 - Fit preview content inside the iframe with a sandbox-local transform and release media-clipping ancestor overflow before measuring; keep native canvas resolution and export behavior intact.
+- Expose AURELIA to external assistants through the OAuth-protected MCP server in src/lib/mcp with caller-scoped database access; never use admin keys or public access for user projects.
