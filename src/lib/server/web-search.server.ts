@@ -16,9 +16,9 @@ const decode = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-async function get(url: string, ms = 6000) {
+async function get(url: string, ms = 6000, ua = UA) {
   const res = await fetch(url, {
-    headers: { "User-Agent": UA, Accept: "text/html,application/json" },
+    headers: { "User-Agent": ua, Accept: "text/html,application/json" },
     signal: AbortSignal.timeout(ms),
   });
   if (!res.ok) throw new Error(`${res.status}`);
@@ -50,10 +50,10 @@ export function parseBing(xml: string): SearchHit[] {
 }
 
 async function duckduckgo(q: string) {
-  return parseDuckDuckGo(await get(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`));
+  return parseDuckDuckGo(await get(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(q)}`, 6000, "Mozilla/5.0"));
 }
 async function bing(q: string) {
-  return parseBing(await get(`https://www.bing.com/search?format=rss&setlang=en&cc=US&q=${encodeURIComponent(q)}`));
+  return parseBing(await get(`https://www.bing.com/search?format=rss&setlang=en&cc=US&q=${encodeURIComponent(q)}`, 6000, "Mozilla/5.0"));
 }
 async function wikipedia(q: string): Promise<SearchHit[]> {
   const data = JSON.parse(
