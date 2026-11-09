@@ -118,6 +118,7 @@ export function Workspace({
 }) {
   const [userId, setUserId] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mode, setMode] = useState<"explain" | "preview">("explain");
   const [view, setView] = useState<"workspace" | "live">("workspace");
@@ -270,7 +271,7 @@ export function Workspace({
       return;
     }
     selectCreation(selectedMode, target);
-    void sendMessage({ text, files: sentFiles }, { body: { conversationId: id, mode: selectedMode } });
+    void sendMessage({ text, files: sentFiles }, { body: { conversationId: id, mode: selectedMode, webSearch } });
     textarea.current?.focus();
   }
   useEffect(() => {
@@ -283,7 +284,7 @@ export function Workspace({
     setTarget(selection.target);
     const timer = setTimeout(() => {
       sessionStorage.removeItem(`aurelia-prompt-${id}`);
-      void sendMessage({ text: parsed.text, files: parsed.files ?? [] }, { body: { conversationId: id, mode: parsed.mode } });
+      void sendMessage({ text: parsed.text, files: parsed.files ?? [] }, { body: { conversationId: id, mode: parsed.mode, webSearch } });
     }, 0);
     return () => clearTimeout(timer);
   }, [id, sendMessage]);
@@ -564,7 +565,11 @@ export function Workspace({
                       <span className="status-dot" />
                       AURELIA
                     </span>
-                    <label className="ml-auto mr-2 cursor-pointer text-xs text-primary underline-offset-4 hover:underline">
+                    <label className="ml-auto mr-3 flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
+                      <Switch checked={webSearch} onCheckedChange={setWebSearch} aria-label="Search the web" />
+                      Search the web
+                    </label>
+                    <label className="mr-2 cursor-pointer text-xs text-primary underline-offset-4 hover:underline">
                       Upload file
                       <input
                         type="file"
