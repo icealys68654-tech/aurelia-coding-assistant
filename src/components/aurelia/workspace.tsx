@@ -25,6 +25,7 @@ import {
   Video,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { AgentStep, type AgentPart } from "@/components/aurelia/agent-step";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -119,6 +120,7 @@ export function Workspace({
   const [userId, setUserId] = useState<string | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
+  const [agent, setAgent] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mode, setMode] = useState<"explain" | "preview">("explain");
   const [view, setView] = useState<"workspace" | "live">("workspace");
@@ -257,7 +259,7 @@ export function Workspace({
         const project = await create();
         sessionStorage.setItem(
           `aurelia-prompt-${project.id}`,
-          JSON.stringify({ text, mode: selectedMode, target, files: sentFiles, webSearch }),
+          JSON.stringify({ text, mode: selectedMode, target, files: sentFiles, webSearch, agent }),
         );
         sessionStorage.setItem(`aurelia-selection-${project.id}`, JSON.stringify({ mode: selectedMode, target }));
         await navigate({ to: "/chat/$threadId", params: { threadId: project.id } });
@@ -271,21 +273,22 @@ export function Workspace({
       return;
     }
     selectCreation(selectedMode, target);
-    void sendMessage({ text, files: sentFiles }, { body: { conversationId: id, mode: selectedMode, webSearch } });
+    void sendMessage({ text, files: sentFiles }, { body: { conversationId: id, mode: selectedMode, webSearch, agent } });
     textarea.current?.focus();
   }
   useEffect(() => {
     if (!id) return;
     const pending = sessionStorage.getItem(`aurelia-prompt-${id}`);
     if (!pending) return;
-    const parsed = JSON.parse(pending) as { text: string; mode: "preview" | "explain"; target?: CreationTarget; files?: FileUIPart[]; webSearch?: boolean };
+    const parsed = JSON.parse(pending) as { text: string; mode: "preview" | "explain"; target?: CreationTarget; files?: FileUIPart[]; webSearch?: boolean; agent?: boolean };
     const selection = readCreationSelection(parsed);
     setMode(selection.mode);
     setTarget(selection.target);
     setWebSearch(parsed.webSearch === true);
+    setAgent(parsed.agent === true);
     const timer = setTimeout(() => {
       sessionStorage.removeItem(`aurelia-prompt-${id}`);
-      void sendMessage({ text: parsed.text, files: parsed.files ?? [] }, { body: { conversationId: id, mode: parsed.mode, webSearch: parsed.webSearch === true } });
+      void sendMessage({ text: parsed.text, files: parsed.files ?? [] }, { body: { conversationId: id, mode: parsed.mode, webSearch: parsed.webSearch === true, agent: parsed.agent === true } });
     }, 0);
     return () => clearTimeout(timer);
   }, [id, sendMessage]);
@@ -467,6 +470,8 @@ export function Workspace({
                               >
                                 {part.text}
                               </MessageResponse>
+                            ) : part.type.startsWith("tool-") ? (
+                              <AgentStep key={i} part={part as unknown as AgentPart} />
                             ) : part.type === "reasoning" ? (
                               <Reasoning
                                 key={i}
@@ -567,6 +572,10 @@ export function Workspace({
                       AURELIA
                     </span>
                     <label className="ml-auto mr-3 flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
+                      <Switch checked={agent} onCheckedChange={setAgent} aria-label="Agent mode" />
+                      Agent
+                    </label>
+                    <label className="mr-3 flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground">
                       <Switch checked={webSearch} onCheckedChange={setWebSearch} aria-label="Search the web" />
                       Search the web
                     </label>

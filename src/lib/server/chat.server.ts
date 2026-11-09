@@ -4,6 +4,7 @@ import { createResponsesCall } from "./responses.ts";
 import { withLovableAiGatewayRunIdHeader } from "./run-id.ts";
 import type { Json } from "@/integrations/supabase/types";
 import { mediaInstructions } from "@/lib/media";
+import { agentInstructions, agentTools } from "./agent.server";
 
 export async function handleChat(request: Request) {
   const url = process.env["SUPABASE_URL"];
@@ -89,7 +90,8 @@ export async function handleChat(request: Request) {
       request,
       { ...ai, apiKey },
       await convertToModelMessages(messages),
-      `You are AURELIA, a precise coding assistant. The user's conceptual pipeline is Input Pool -> Compute Layer platonic_shapes(1,1) -> Linking/Reasoning Layer rainbow_tables(*PI) -> Execution Layer pixels(r). This is a conceptual organization, not executable syntax or the architecture of an LLM. Never falsely claim the formula itself runs a model. Help write, debug, reason about and explain code. Use fenced code blocks with language identifiers. XOR #FFFFFF refers to bitwise RGB inversion. Do not claim to have tested code or accessed files. ${mediaInstructions} ${body.mode === "preview" ? "For visual browser tasks, produce a complete self-contained HTML document in one html fenced block, including inline CSS and vanilla JavaScript. No external dependencies or network resources. The user has an isolated browser preview. Explain non-browser code but do not pretend it can run there." : "Generate and explain code in the appropriate language. Do not force browser output when the user asks for another language."}${webContext}`,
+      `You are AURELIA, a precise coding assistant. The user's conceptual pipeline is Input Pool -> Compute Layer platonic_shapes(1,1) -> Linking/Reasoning Layer rainbow_tables(*PI) -> Execution Layer pixels(r). This is a conceptual organization, not executable syntax or the architecture of an LLM. Never falsely claim the formula itself runs a model. Help write, debug, reason about and explain code. Use fenced code blocks with language identifiers. XOR #FFFFFF refers to bitwise RGB inversion. Do not claim to have tested code or accessed files. ${mediaInstructions} ${body.mode === "preview" ? "For visual browser tasks, produce a complete self-contained HTML document in one html fenced block, including inline CSS and vanilla JavaScript. No external dependencies or network resources. The user has an isolated browser preview. Explain non-browser code but do not pretend it can run there." : "Generate and explain code in the appropriate language. Do not force browser output when the user asks for another language."}${webContext}${body.agent === true ? " " + agentInstructions : ""}`,
+      body.agent === true ? agentTools() : undefined,
     );
     let persistenceFailure: string | undefined;
     const response = result.toUIMessageStreamResponse({

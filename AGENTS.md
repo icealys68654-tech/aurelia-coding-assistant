@@ -39,3 +39,4 @@ use the editor.
 - Use named grid areas for chat, canvas output and engine across screen sizes; keep a single preview iframe mounted when changing workspace views to preserve execution and export state.
 - Fit preview content inside the iframe with a sandbox-local transform and release media-clipping ancestor overflow before measuring; keep native canvas resolution and export behavior intact.
 - Expose AURELIA to external assistants through the OAuth-protected MCP server in src/lib/mcp with caller-scoped database access; never use admin keys or public access for user projects.
+- Run multi-step agents as AI SDK tools (plan, web_search, check_html) inside the existing chat stream and render each tool part in the chat; share check logic with the MCP server so agents stay transparent.

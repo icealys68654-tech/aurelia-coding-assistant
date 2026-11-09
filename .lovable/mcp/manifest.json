@@ -92,6 +92,33 @@
           "additionalProperties": false
         },
         "outputSchema": null
+      },
+      {
+        "name": "check_html",
+        "title": "Check HTML",
+        "description": "Run AURELIA's agent check on a self-contained HTML page and list structural problems.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "html": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200000,
+              "description": "Complete HTML document."
+            }
+          },
+          "required": [
+            "html"
+          ],
+          "additionalProperties": false
+        },
+        "outputSchema": null
       }
     ]
   }
