@@ -45,7 +45,16 @@ export function parseBing(html: string): SearchHit[] {
     const a = block.match(/<h2[^>]*>\s*<a[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/);
     if (!a) continue;
     const p = block.match(/<p[^>]*>([\s\S]*?)<\/p>/);
-    out.push({ title: decode(a[2]!), url: a[1]!.replace(/&amp;/g, "&"), snippet: decode(p?.[1] ?? ""), engines: ["Bing"] });
+    let href = a[1]!.replace(/&amp;/g, "&");
+    const enc = href.match(/[?&]u=a1([^&]+)/);
+    if (enc) {
+      try {
+        href = atob(enc[1]!.replace(/-/g, "+").replace(/_/g, "/"));
+      } catch {
+        /* keep redirect link */
+      }
+    }
+    out.push({ title: decode(a[2]!), url: href, snippet: decode(p?.[1] ?? ""), engines: ["Bing"] });
   }
   return out;
 }
