@@ -549,6 +549,28 @@ export function Workspace({
                       <span className="status-dot" />
                       AURELIA
                     </span>
+                    <label className="ml-auto mr-2 cursor-pointer text-xs text-primary underline-offset-4 hover:underline">
+                      Upload file
+                      <input
+                        type="file"
+                        className="sr-only"
+                        aria-label="Upload file"
+                        disabled={busy || creating}
+                        accept=".txt,.md,.html,.htm,.css,.js,.jsx,.ts,.tsx,.json,.py,.java,.c,.cpp,.h,.cs,.go,.rs,.rb,.php,.sh,.sql,.xml,.yml,.yaml,.svg,text/*"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          e.target.value = "";
+                          if (!file) return;
+                          if (file.size > 200_000) return void toast.error("Files must be under 200 KB.");
+                          const content = await file.text();
+                          if (content.includes("\u0000")) return void toast.error("Only text or code files can be uploaded.");
+                          const ext = file.name.split(".").pop() ?? "";
+                          setInput((prev) => `${prev ? prev + "\n\n" : ""}File: ${file.name}\n\`\`\`${ext}\n${content}\n\`\`\``);
+                          toast.success(`${file.name} added`);
+                          textarea.current?.focus();
+                        }}
+                      />
+                    </label>
                     <PromptInputSubmit
                       status={status}
                       onStop={stop}
