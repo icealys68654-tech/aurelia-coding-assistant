@@ -707,7 +707,7 @@ export function Workspace({
                 {outputTab === "code" ? (
                   files.length ? (
                     <div className="code-output">
-                      {attachments.map((f, i) => (
+                      {files.map((f, i) => (
                         <div key={i}>
                           <div className="code-language">{f.language}</div>
                           <pre>
