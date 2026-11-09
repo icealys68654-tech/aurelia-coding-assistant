@@ -8,7 +8,16 @@ import { mediaInstructions } from "@/lib/media";
 export async function handleChat(request: Request) {
   const url = process.env["SUPABASE_URL"];
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
-  const apiKey = process.env["LOVABLE_API_KEY"];
+  // Prefer AURELIA's own OpenAI account; fall back to the built-in service only if no key is set.
+  const ownKey = process.env["OPENAI_API_KEY"];
+  const apiKey = ownKey || process.env["LOVABLE_API_KEY"];
+  const ai = ownKey
+    ? {
+        baseURL: "https://api.openai.com/v1",
+        model: process.env["OPENAI_MODEL"] || "gpt-5",
+        direct: true,
+      }
+    : { baseURL: "https://ai.gateway.lovable.dev/v1", model: "openai/gpt-6-astra", direct: false };
   if (!url || !key || !apiKey)
     return Response.json({ error: "The AI connection is not configured." }, { status: 503 });
   const authorization = request.headers.get("Authorization");
@@ -69,7 +78,7 @@ export async function handleChat(request: Request) {
     if (write.error) throw new Error("Your prompt could not be saved.");
     const { result, runIdFetch } = createResponsesCall(
       request,
-      { baseURL: "https://ai.gateway.lovable.dev/v1", apiKey, model: "openai/gpt-6-astra" },
+      { ...ai, apiKey },
       await convertToModelMessages(messages),
       `You are AURELIA, a precise coding assistant. The user's conceptual pipeline is Input Pool -> Compute Layer platonic_shapes(1,1) -> Linking/Reasoning Layer rainbow_tables(*PI) -> Execution Layer pixels(r). This is a conceptual organization, not executable syntax or the architecture of an LLM. Never falsely claim the formula itself runs a model. Help write, debug, reason about and explain code. Use fenced code blocks with language identifiers. XOR #FFFFFF refers to bitwise RGB inversion. Do not claim to have tested code or accessed files. ${mediaInstructions} ${body.mode === "preview" ? "For visual browser tasks, produce a complete self-contained HTML document in one html fenced block, including inline CSS and vanilla JavaScript. No external dependencies or network resources. The user has an isolated browser preview. Explain non-browser code but do not pretend it can run there." : "Generate and explain code in the appropriate language. Do not force browser output when the user asks for another language."}`,
     );
@@ -108,7 +117,7 @@ export async function handleChat(request: Request) {
         return message;
       },
     });
-    return withLovableAiGatewayRunIdHeader(response, runIdFetch);
+    return ai.direct ? response : withLovableAiGatewayRunIdHeader(response, runIdFetch);
   } catch (error) {
     if (request.signal.aborted) return new Response(null, { status: 499 });
     return Response.json(
