@@ -79,12 +79,13 @@ export async function handleChat(request: Request) {
     if (write.error) throw new Error("Your prompt could not be saved.");
     let webContext = "";
     if (body.webSearch === true) {
-      const { metaSearch, searchContext } = await import("./web-search.server");
+      const { searchWeb, searchContext } = await import("./web-search.server");
       const query = lastUser.parts
         .filter((p) => p.type === "text")
         .map((p) => p.text)
         .join(" ");
-      webContext = " " + searchContext(await metaSearch(query).catch(() => []));
+      const search = await searchWeb(query);
+      webContext = " " + searchContext(search.results, search.providers);
     }
     const { result, runIdFetch } = createResponsesCall(
       request,
