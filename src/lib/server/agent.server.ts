@@ -5,17 +5,28 @@ import { searchWeb } from "./web-search.server";
 export const agentInstructions =
   "AGENT MODE: Work in visible steps. First call plan with 2-5 short steps. Use web_search when facts may be current or uncertain, and cite sources as [n](url). After writing any HTML document, call check_html with the full document; if it reports problems, fix them and check again (at most 2 retries). Finish with the final answer and code.";
 
+/** Remove comments and string/template literals so brackets inside them are not counted. */
+export function stripCode(code: string) {
+  return code.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|`(?:\\[\s\S]|[^`\\])*`|"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'/g, '""');
+}
+
 export function checkHtml(html: string) {
   const problems: string[] = [];
   const count = (re: RegExp) => (html.match(re) ?? []).length;
   if (!/<html[\s>]/i.test(html) || !/<\/html>/i.test(html)) problems.push("Missing <html> or </html>.");
   if (count(/<script\b/gi) !== count(/<\/script>/gi)) problems.push("Unbalanced <script> tags.");
   if (count(/<style\b/gi) !== count(/<\/style>/gi)) problems.push("Unbalanced <style> tags.");
-  if (/(src|href)\s*=\s*["']https?:\/\//i.test(html) || /\bfetch\s*\(|XMLHttpRequest|import\s*\(/.test(html))
+  // Plain <a href="https://..."> links are fine; only loaded resources are blocked.
+  if (
+    /\bsrc\s*=\s*["']https?:\/\//i.test(html) ||
+    /<link\b[^>]*href\s*=\s*["']https?:\/\//i.test(html) ||
+    /\burl\(\s*["']?https?:\/\//i.test(html) ||
+    /\bfetch\s*\(|XMLHttpRequest|\bimport\s*\(/.test(stripCode(html))
+  )
     problems.push("Uses network resources, which the sandboxed preview blocks.");
   if (/<canvas\b/i.test(html) && !/getContext\s*\(/.test(html)) problems.push("Has a <canvas> but never calls getContext().");
   for (const block of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) {
-    const code = block[1]!;
+    const code = stripCode(block[1]!);
     const pairs: [string, string][] = [["(", ")"], ["{", "}"], ["[", "]"]];
     for (const [o, c] of pairs)
       if (code.split(o).length !== code.split(c).length) problems.push(`Script has unbalanced ${o}${c}.`);
