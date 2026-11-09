@@ -239,16 +239,16 @@ export function Workspace({
       setCreating(false);
     }
   }
-  const [files, setFiles] = useState<FileUIPart[]>([]);
+  const [attachments, setAttachments] = useState<FileUIPart[]>([]);
   async function submit(text: string, selectedMode = mode) {
     if (!text.trim() || busy) return;
-    const sentFiles = files;
+    const sentFiles = attachments;
     if (!userId) {
       setAuthOpen(true);
       return;
     }
     setInput("");
-    setFiles([]);
+    setAttachments([]);
     text = creationRequest(text, target);
     if (!id) {
       setCreating(true);
@@ -263,7 +263,7 @@ export function Workspace({
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Project could not be created.");
         setInput(text);
-        setFiles(sentFiles);
+        setAttachments(sentFiles);
       } finally {
         setCreating(false);
       }
@@ -550,10 +550,10 @@ export function Workspace({
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                   />
-                  {files.length > 0 && (
+                  {attachments.length > 0 && (
                     <div className="flex flex-wrap gap-1 px-3 pt-2">
-                      {files.map((f, i) => (
-                        <button key={i} type="button" className="rounded border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground" aria-label={`Remove ${f.filename}`} onClick={() => setFiles((all) => all.filter((_, j) => j !== i))}>
+                      {attachments.map((f, i) => (
+                        <button key={i} type="button" className="rounded border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground" aria-label={`Remove ${f.filename}`} onClick={() => setAttachments((all) => all.filter((_, j) => j !== i))}>
                           {f.filename} ×
                         </button>
                       ))}
@@ -579,7 +579,7 @@ export function Workspace({
                           for (const file of list) {
                             try {
                               const r = await readUpload(file);
-                              if (r.kind === "file") setFiles((f) => [...f, r.part]);
+                              if (r.kind === "file") setAttachments((f) => [...f, r.part]);
                               else setInput((prev) => `${prev ? prev + "\n\n" : ""}${r.text}`);
                               toast.success(`${file.name} added`);
                             } catch (err) {
@@ -707,7 +707,7 @@ export function Workspace({
                 {outputTab === "code" ? (
                   files.length ? (
                     <div className="code-output">
-                      {files.map((f, i) => (
+                      {attachments.map((f, i) => (
                         <div key={i}>
                           <div className="code-language">{f.language}</div>
                           <pre>
