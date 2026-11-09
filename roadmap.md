@@ -1,5 +1,5 @@
 # AURELIA coding assistant
-- [ ] Add persistent per-reply AI credit estimates from token usage and model rates; test Agent totals and unavailable usage.
+- [x] Add persistent per-reply AI credit estimates from token usage and model rates; test Agent totals and unavailable usage.
 - [x] Repair shared multi-source search; verify real DuckDuckGo, Stack Overflow and MDN results through shared and tool handlers.
 - [ ] Verify full chat answers after Lovable AI is enabled (blocked by workspace AI setting).
 - [ ] Verify updated signed-in hosted MCP searches after republishing (blocked by publication).
