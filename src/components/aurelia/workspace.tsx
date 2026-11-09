@@ -257,7 +257,7 @@ export function Workspace({
         const project = await create();
         sessionStorage.setItem(
           `aurelia-prompt-${project.id}`,
-          JSON.stringify({ text, mode: selectedMode, target, files: sentFiles }),
+          JSON.stringify({ text, mode: selectedMode, target, files: sentFiles, webSearch }),
         );
         sessionStorage.setItem(`aurelia-selection-${project.id}`, JSON.stringify({ mode: selectedMode, target }));
         await navigate({ to: "/chat/$threadId", params: { threadId: project.id } });
@@ -278,13 +278,14 @@ export function Workspace({
     if (!id) return;
     const pending = sessionStorage.getItem(`aurelia-prompt-${id}`);
     if (!pending) return;
-    const parsed = JSON.parse(pending) as { text: string; mode: "preview" | "explain"; target?: CreationTarget; files?: FileUIPart[] };
+    const parsed = JSON.parse(pending) as { text: string; mode: "preview" | "explain"; target?: CreationTarget; files?: FileUIPart[]; webSearch?: boolean };
     const selection = readCreationSelection(parsed);
     setMode(selection.mode);
     setTarget(selection.target);
+    setWebSearch(parsed.webSearch === true);
     const timer = setTimeout(() => {
       sessionStorage.removeItem(`aurelia-prompt-${id}`);
-      void sendMessage({ text: parsed.text, files: parsed.files ?? [] }, { body: { conversationId: id, mode: parsed.mode, webSearch } });
+      void sendMessage({ text: parsed.text, files: parsed.files ?? [] }, { body: { conversationId: id, mode: parsed.mode, webSearch: parsed.webSearch === true } });
     }, 0);
     return () => clearTimeout(timer);
   }, [id, sendMessage]);
