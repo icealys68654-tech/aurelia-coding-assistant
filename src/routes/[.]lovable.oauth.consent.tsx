@@ -37,7 +37,15 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
     if (immediate && !data?.client) throw redirect({ href: immediate });
     return data;
   },
-  head: () => ({ meta: [{ title: "Connect an assistant — AURELIA" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [
+    { title: "Connect an assistant — AURELIA" },
+    { name: "description", content: "Approve an assistant connection to your private AURELIA projects and web search." },
+    { property: "og:title", content: "Connect an assistant — AURELIA" },
+    { property: "og:description", content: "Securely authorize an assistant to use your AURELIA tools." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   component: Consent,
   errorComponent: ({ error }) => (
     <main className="grid min-h-dvh place-items-center p-6 text-center text-sm text-muted-foreground">
