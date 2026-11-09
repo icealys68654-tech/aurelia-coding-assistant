@@ -40,3 +40,4 @@ use the editor.
 - Fit preview content inside the iframe with a sandbox-local transform and release media-clipping ancestor overflow before measuring; keep native canvas resolution and export behavior intact.
 - Expose AURELIA to external assistants through the OAuth-protected MCP server in src/lib/mcp with caller-scoped database access; never use admin keys or public access for user projects.
 - Run multi-step agents as AI SDK tools (plan, web_search, check_html) inside the existing chat stream and render each tool part in the chat; share check logic with the MCP server so agents stay transparent.
+- Keep chat, agents and MCP on the same bounded keyless search service with provider status and public-format fallbacks; source outages must never masquerade as complete searches.

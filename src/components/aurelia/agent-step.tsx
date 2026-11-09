@@ -26,6 +26,7 @@ export function AgentStep({ part }: { part: AgentPart }) {
   const steps = (part.output?.["steps"] ?? part.input?.["steps"]) as string[] | undefined;
   const sources = part.output?.["sources"] as Source[] | undefined;
   const problems = part.output?.["problems"] as string[] | undefined;
+  const providers = part.output?.["providers"] as { name: string; status: string }[] | undefined;
   return (
     <div className="my-2 rounded-md border border-border bg-muted/40 p-3 text-xs" role="status">
       <div className="flex items-center gap-2 font-medium">
@@ -56,6 +57,11 @@ export function AgentStep({ part }: { part: AgentPart }) {
             </li>
           ))}
         </ul>
+      )}
+      {name === "web_search" && done && providers?.some(p => p.status !== "ok") && (
+        <p className="mt-2 text-muted-foreground">
+          {providers.filter(p => p.status !== "ok").map(p => `${p.name}: ${p.status === "empty" ? "no matching results" : "unavailable"}`).join(" · ")}
+        </p>
       )}
       {name === "check_html" && done && (
         <p className="mt-2 text-muted-foreground">

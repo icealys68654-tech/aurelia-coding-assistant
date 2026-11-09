@@ -70,7 +70,7 @@
       {
         "name": "web_search",
         "title": "Web search",
-        "description": "Search DuckDuckGo, Wikipedia and Stack Overflow at once and return merged, numbered sources.",
+        "description": "Search DuckDuckGo, Stack Overflow, MDN and Wikipedia and return merged, numbered sources with provider status.",
         "annotations": {
           "readOnlyHint": true,
           "openWorldHint": true

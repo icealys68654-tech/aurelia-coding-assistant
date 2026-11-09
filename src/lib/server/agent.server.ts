@@ -1,6 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { metaSearch } from "./web-search.server";
+import { searchWeb } from "./web-search.server";
 
 export const agentInstructions =
   "AGENT MODE: Work in visible steps. First call plan with 2-5 short steps. Use web_search when facts may be current or uncertain, and cite sources as [n](url). After writing any HTML document, call check_html with the full document; if it reports problems, fix them and check again (at most 2 retries). Finish with the final answer and code.";
@@ -31,11 +31,12 @@ export function agentTools() {
       execute: async ({ steps }) => ({ steps }),
     }),
     web_search: tool({
-      description: "Search DuckDuckGo, Wikipedia and Stack Overflow; returns numbered sources with excerpts.",
+      description: "Search DuckDuckGo, Stack Overflow, MDN and Wikipedia; returns numbered sources with excerpts and provider status.",
       inputSchema: z.object({ query: z.string().min(2).max(300) }),
       execute: async ({ query }) => {
-        const results = await metaSearch(query).catch(() => []);
+        const { results, providers } = await searchWeb(query);
         return {
+          providers,
           sources: results.map((r, i) => ({
             n: i + 1,
             title: r.title,
