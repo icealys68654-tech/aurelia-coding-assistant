@@ -1,23 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Workspace } from "@/components/aurelia/workspace";
+import { IntegrationsDock } from "@/components/aurelia/integrations-dock";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AURELIA — Generative coding workspace" },
+      { title: "AURELIA — AI research & coding workspace" },
       {
         name: "description",
         content:
-          "Build, explain, and preview code with AURELIA, your four-layer AI coding assistant.",
+          "An AI workspace with an OAuth-protected MCP server, server-side AI connector, and multi-source research agent.",
       },
-      { property: "og:title", content: "AURELIA — Generative coding workspace" },
+      { property: "og:title", content: "AURELIA — AI research & coding workspace" },
       {
         property: "og:description",
         content:
-          "From input to execution: private coding projects, AI generation, and live browser previews.",
+          "Connect MCP clients, run a multi-source research agent, and build with AURELIA's four-layer workspace.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Workspace,
+  component: function Home() {
+    return (
+      <>
+        <Workspace />
+        <IntegrationsDock />
+      </>
+    );
+  },
 });
